@@ -1,0 +1,7 @@
+apiVersion: v2
+name: rusauth-authorization-example
+description: Public demo deployment for RusAuth.Authorization.Example behind Gateway API.
+type: application
+version: 0.1.0
+appVersion: "1.0.1"
+

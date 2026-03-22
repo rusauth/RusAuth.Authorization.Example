@@ -1,0 +1,171 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+    inputs:
+      rotate_callback_token:
+        description: Rotate the callback bearer token in Kubernetes before deploy
+        required: false
+        default: false
+        type: boolean
+
+env:
+  DOTNET_VERSION: 10.0.x
+  BUILD_CONFIGURATION: Release
+  IMAGE_REPOSITORY: ghcr.io/${{ github.repository_owner }}/rusauth-authorization-example
+  KUBE_NAMESPACE: rusauth-example-demo
+  HELM_RELEASE: rusauth-authorization-example
+  CHART_PATH: pipelines/charts/rusauth-authorization-example
+  APP_SECRET_NAME: rusauth-authorization-example-secrets
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-test:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+
+      - name: Restore solution
+        run: dotnet restore RusAuth.Authorization.Example.slnx --nologo
+
+      - name: Build solution
+        run: dotnet build RusAuth.Authorization.Example.slnx -c ${{ env.BUILD_CONFIGURATION }} --no-restore --nologo
+
+      - name: Run tests
+        run: dotnet test RusAuth.Authorization.Example.slnx -c ${{ env.BUILD_CONFIGURATION }} --no-build --nologo --logger "console;verbosity=minimal"
+
+      - name: Build container image
+        run: docker build -t rusauth-authorization-example-ci .
+
+      - name: Lint Helm chart
+        run: helm lint ./${{ env.CHART_PATH }}
+
+      - name: Render Helm chart
+        run: helm template ${{ env.HELM_RELEASE }} ./${{ env.CHART_PATH }} > /tmp/rusauth-authorization-example-chart.yaml
+
+  publish-and-deploy:
+    if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
+    needs: build-test
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push container image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE_REPOSITORY }}:sha-${{ github.sha }}
+            ${{ env.IMAGE_REPOSITORY }}:latest
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+
+      - name: Write kubeconfig
+        shell: bash
+        env:
+          KUBECONFIG_B64: ${{ secrets.KUBECONFIG_B64 }}
+        run: |
+          test -n "${KUBECONFIG_B64}"
+          printf '%s' "${KUBECONFIG_B64}" | base64 -d > "${RUNNER_TEMP}/kubeconfig.yaml"
+          chmod 600 "${RUNNER_TEMP}/kubeconfig.yaml"
+
+      - name: Ensure namespace and runtime secrets
+        shell: bash
+        env:
+          KUBECONFIG: ${{ runner.temp }}/kubeconfig.yaml
+          GHCR_PULL_USERNAME: ${{ secrets.GHCR_PULL_USERNAME }}
+          GHCR_PULL_TOKEN: ${{ secrets.GHCR_PULL_TOKEN }}
+          RUSAUTH_EXAMPLE_API_TOKEN: ${{ secrets.RUSAUTH_EXAMPLE_API_TOKEN }}
+          ROTATE_CALLBACK_TOKEN: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.rotate_callback_token || 'false' }}
+        run: |
+          test -n "${GHCR_PULL_USERNAME}"
+          test -n "${GHCR_PULL_TOKEN}"
+          test -n "${RUSAUTH_EXAMPLE_API_TOKEN}"
+
+          kubectl get namespace "${KUBE_NAMESPACE}" >/dev/null 2>&1 || kubectl create namespace "${KUBE_NAMESPACE}"
+
+          kubectl -n "${KUBE_NAMESPACE}" create secret docker-registry ghcr-pull \
+            --docker-server=ghcr.io \
+            --docker-username="${GHCR_PULL_USERNAME}" \
+            --docker-password="${GHCR_PULL_TOKEN}" \
+            --dry-run=client \
+            -o yaml | kubectl apply -f -
+
+          existing_callback_token=""
+          if kubectl -n "${KUBE_NAMESPACE}" get secret "${APP_SECRET_NAME}" >/dev/null 2>&1; then
+            existing_callback_token="$(kubectl -n "${KUBE_NAMESPACE}" get secret "${APP_SECRET_NAME}" -o jsonpath='{.data.Example__CallbackBearerToken}' | base64 -d)"
+          fi
+
+          if [[ "${ROTATE_CALLBACK_TOKEN}" == "true" || -z "${existing_callback_token}" ]]; then
+            callback_token="$(openssl rand -hex 32)"
+          else
+            callback_token="${existing_callback_token}"
+          fi
+
+          kubectl -n "${KUBE_NAMESPACE}" create secret generic "${APP_SECRET_NAME}" \
+            --from-literal=RusAuth__Token="${RUSAUTH_EXAMPLE_API_TOKEN}" \
+            --from-literal=Example__CallbackBearerToken="${callback_token}" \
+            --dry-run=client \
+            -o yaml | kubectl apply -f -
+
+      - name: Deploy Helm release
+        shell: bash
+        env:
+          KUBECONFIG: ${{ runner.temp }}/kubeconfig.yaml
+        run: |
+          helm upgrade --install "${HELM_RELEASE}" "./${CHART_PATH}" \
+            --namespace "${KUBE_NAMESPACE}" \
+            --create-namespace \
+            --set-string image.repository="${IMAGE_REPOSITORY}" \
+            --set-string image.tag="sha-${GITHUB_SHA}" \
+            --set imagePullSecrets[0]=ghcr-pull \
+            --set-string deployment.stamp="${GITHUB_RUN_ID}"
+
+      - name: Wait for rollout
+        shell: bash
+        env:
+          KUBECONFIG: ${{ runner.temp }}/kubeconfig.yaml
+        run: kubectl -n "${KUBE_NAMESPACE}" rollout status deployment/"${HELM_RELEASE}" --timeout=5m
+
+      - name: Verify public endpoint
+        run: curl -fsS --retry 20 --retry-delay 5 --retry-all-errors https://example-demo.rusauth.ru/ > /dev/null

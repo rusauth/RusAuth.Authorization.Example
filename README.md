@@ -1,90 +1,122 @@
 # RusAuth.Authorization.Example
 
-`RusAuth.Authorization.Example` — публичный эталонный пример для внешней интеграции с RusAuth по REST.
+`RusAuth.Authorization.Example` is the public reference application for third-party integration with RusAuth over REST.
 
-## Назначение
+## Purpose
 
-Используйте это решение, если ваша система должна обращаться к RusAuth только за подтверждением звонком.
+Use this solution when your system only needs RusAuth phone call confirmation and does not participate in RusAuth internal SSO.
 
-Важно:
+Important:
 
-- внешний клиент работает только с публичным REST API RusAuth
-- внешний клиент авторизуется токеном компании в заголовке `api-key`
-- после подтверждения звонка RusAuth не выдаёт локальную сессию вашего приложения: это остаётся ответственностью вашей системы
+- the external client works only with the public RusAuth REST API
+- the external client authenticates with the company token in the `api-key` header
+- after confirmation RusAuth does not create a local application session for you, that remains your responsibility
 
-## Что показывает пример
+## What the example demonstrates
 
-- вызов `CallToConfirm`
-- получение номера RusAuth и `TransactionId`
-- приём webhook с подтверждением
-- ручную проверку через `CheckConfirmation`
-- локальный журнал подтверждений
+- `CallToConfirm`
+- receiving the RusAuth phone number and `TransactionId`
+- accepting the confirmation webhook
+- manual status checks with `CheckConfirmation`
+- a local confirmation history
 
-## Структура
+## Project structure
 
 - `RusAuth.Authorization.Example`
   - Blazor Web App Server
-  - демонстрирует внешний сценарий подтверждения звонком
+  - public demo application deployed to `https://example-demo.rusauth.ru`
 - `RusAuth.Authorization.Example.Tests`
-  - проверяет фасадную логику примера без живого RusAuth
+  - unit tests for the example application logic
+- `pipelines/charts/rusauth-authorization-example`
+  - Helm chart for the K3s deployment behind Gateway API
+- `.github/workflows/ci.yml`
+  - PR build/test workflow and automatic `master` deployment
 
-## Локальная разработка
+## Package dependencies
 
-Пример использует обычные `PackageReference` на:
+The example consumes public NuGet packages:
 
-- `RusAuth.Authorization`
-- `RusAuth.Authorization.Contracts`
+- `RusAuth.Authorization` `1.0.1`
+- `RusAuth.Authorization.Contracts` `1.0.1`
 
-Для локальной разработки с ещё не опубликованными пакетами сначала упакуйте их из репозитория RusAuth:
+Standard `dotnet restore` uses NuGet.org. No private feed is required for the published package versions.
+
+## Local development
+
+Restore, build, and test:
 
 ```powershell
-powershell -File D:\Developer\SERVER\RusAuth\RusAuth\scripts\pack-rusauth-authorization-packages.ps1
-```
-
-Затем восстановите, соберите и протестируйте пример, явно указав локальный source:
-
-```powershell
-dotnet restore D:\Developer\SERVER\RusAuth\Example\RusAuth.Authorization.Example.slnx `
-  --source D:\Developer\SERVER\RusAuth\RusAuth\artifacts\packages `
-  --source https://api.nuget.org/v3/index.json
+dotnet restore D:\Developer\SERVER\RusAuth\Example\RusAuth.Authorization.Example.slnx --nologo
 dotnet build D:\Developer\SERVER\RusAuth\Example\RusAuth.Authorization.Example.slnx --nologo
 dotnet test D:\Developer\SERVER\RusAuth\Example\RusAuth.Authorization.Example.slnx --nologo
 ```
 
-После публикации пакетов в ваш NuGet feed достаточно обычного `dotnet restore`, без локальных путей и без специальных MSBuild-флагов.
+Local secret values should stay in `appsettings.Development.Local.json`, which is ignored by git.
 
-## Конфигурация
+## Configuration
 
-В `appsettings.json` или `appsettings.Development.json` настройте секции `RusAuth` и `Example`:
+Tracked `appsettings.json` keeps only the public defaults:
 
 ```json
 {
   "RusAuth": {
-    "BaseUrl": "http://localhost:7005/",
-    "Token": "ВАШ_ТОКЕН_КОМПАНИИ",
+    "BaseUrl": "https://rusauth.ru/auth-client-api/",
+    "Token": "",
     "TimeOut": 15
   },
   "Example": {
-    "CallbackBearerToken": "ВАШ_ЛОКАЛЬНЫЙ_CALLBACK_BEARER"
+    "CallbackBearerToken": ""
   }
 }
 ```
 
-Где:
+Production secrets are not committed because this repository is public.
 
-- `RusAuth:BaseUrl` указывает на публичный REST API RusAuth
-- `RusAuth:Token` — токен компании, которым RusAuth распознаёт интегратора
-- `Example:CallbackBearerToken` — ваш собственный Bearer-токен для защиты callback endpoint-а
+Runtime configuration is provided through Kubernetes secrets:
 
-## Что должен сделать внешний клиент
+- `RusAuth__Token`
+- `Example__CallbackBearerToken`
 
-1. Вызвать `CallToConfirm`.
-2. Сохранить `TransactionId` и номер клиента у себя.
-3. Дождаться webhook или выполнить ручную проверку через `CheckConfirmation`.
-4. После статуса `Success` применить свои правила входа, подтверждения операции или подтверждения действия.
+The callback bearer token is created in Kubernetes on first deploy and reused on later deploys unless a manual workflow run explicitly rotates it.
 
-## Что пример не делает намеренно
+## CI/CD
 
-- не навязывает модель вашей собственной SSO/авторизации
+GitHub Actions workflow:
 
-Это учебный и документационный пример, а не готовое production-приложение.
+- pull requests to `master`
+  - restore
+  - build
+  - test
+  - Docker build validation
+  - Helm lint and render
+- push to `master`
+  - repeat the same validation
+  - build and push container image to GHCR
+  - deploy automatically to K3s namespace `rusauth-example-demo`
+
+Required GitHub Actions secrets:
+
+- `KUBECONFIG_B64`
+- `GHCR_PULL_USERNAME`
+- `GHCR_PULL_TOKEN`
+- `RUSAUTH_EXAMPLE_API_TOKEN`
+
+## Deployment
+
+The production deployment uses:
+
+- image: `ghcr.io/rusauth/rusauth-authorization-example`
+- hostname: `example-demo.rusauth.ru`
+- ingress model: Gateway API through the shared `edge` gateway in `gateway-system`
+- namespace: `rusauth-example-demo`
+
+The chart expects a runtime secret named `rusauth-authorization-example-secrets`.
+
+## Operational note
+
+The application runs behind Traefik with TLS termination on the gateway. The app itself trusts forwarded headers and exposes:
+
+- `/health/live`
+- `/health/ready`
+
+for Kubernetes liveness and readiness probes.

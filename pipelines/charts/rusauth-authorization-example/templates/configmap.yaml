@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "rusauth-authorization-example.fullname" . }}-config
+  labels:
+    {{- include "rusauth-authorization-example.labels" . | nindent 4 }}
+data:
+  ASPNETCORE_ENVIRONMENT: {{ .Values.appConfig.aspnetcoreEnvironment | quote }}
+  ASPNETCORE_URLS: {{ .Values.appConfig.aspnetcoreUrls | quote }}
+  AllowedHosts: {{ .Values.appConfig.allowedHosts | quote }}
+  RusAuth__BaseUrl: {{ .Values.appConfig.rusAuthBaseUrl | quote }}
+  RusAuth__TimeOut: {{ .Values.appConfig.rusAuthTimeout | quote }}
+  Logging__LogLevel__Default: {{ .Values.appConfig.logging.default | quote }}
+  Logging__LogLevel__Microsoft__AspNetCore: {{ .Values.appConfig.logging.microsoftAspNetCore | quote }}
+
