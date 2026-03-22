@@ -38,6 +38,16 @@ gateway:
     - example-demo.rusauth.ru
   pathPrefix: /
 
+callbackProtection:
+  enabled: true
+  path: /api/rusauth/callback/confirmation
+  rateLimit:
+    average: 2
+    period: 1m
+    burst: 2
+  inFlightReq:
+    amount: 1
+
 resources:
   requests:
     cpu: 100m
@@ -45,4 +55,3 @@ resources:
   limits:
     cpu: 500m
     memory: 512Mi
-

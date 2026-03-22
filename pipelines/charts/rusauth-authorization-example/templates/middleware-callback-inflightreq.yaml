@@ -1,0 +1,11 @@
+{{- if .Values.callbackProtection.enabled }}
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ include "rusauth-authorization-example.fullname" . }}-callback-inflightreq
+  labels:
+    {{- include "rusauth-authorization-example.labels" . | nindent 4 }}
+spec:
+  inFlightReq:
+    amount: {{ .Values.callbackProtection.inFlightReq.amount }}
+{{- end }}

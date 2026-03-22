@@ -1,0 +1,13 @@
+{{- if .Values.callbackProtection.enabled }}
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ include "rusauth-authorization-example.fullname" . }}-callback-ratelimit
+  labels:
+    {{- include "rusauth-authorization-example.labels" . | nindent 4 }}
+spec:
+  rateLimit:
+    average: {{ .Values.callbackProtection.rateLimit.average }}
+    period: {{ .Values.callbackProtection.rateLimit.period | quote }}
+    burst: {{ .Values.callbackProtection.rateLimit.burst }}
+{{- end }}

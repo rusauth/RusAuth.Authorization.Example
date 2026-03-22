@@ -16,6 +16,26 @@ spec:
     - {{ . | quote }}
     {{- end }}
   rules:
+    {{- if .Values.callbackProtection.enabled }}
+    - matches:
+        - path:
+            type: Exact
+            value: {{ .Values.callbackProtection.path | quote }}
+      filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: traefik.io
+            kind: Middleware
+            name: {{ include "rusauth-authorization-example.fullname" . }}-callback-ratelimit
+        - type: ExtensionRef
+          extensionRef:
+            group: traefik.io
+            kind: Middleware
+            name: {{ include "rusauth-authorization-example.fullname" . }}-callback-inflightreq
+      backendRefs:
+        - name: {{ include "rusauth-authorization-example.fullname" . }}
+          port: {{ .Values.service.port }}
+    {{- end }}
     - matches:
         - path:
             type: PathPrefix
