@@ -1,0 +1,87 @@
+@page "/guide"
+@inject IOptions<RusAuthOptions> RusAuthOptionsAccessor
+
+<PageTitle>Руководство</PageTitle>
+
+<section class="two-column">
+    <article class="info-card">
+        <p class="eyebrow">Как использовать пакет</p>
+        <h1>Руководство по интеграции</h1>
+        <p>
+            Этот пример показывает внешний сценарий: ваша система вызывает РосАвт только для подтверждения звонком,
+            а решение о выдаче локальной сессии принимает уже ваш собственный backend.
+        </p>
+        <div class="data-list">
+            <div class="data-item">
+                <span>Шаг 1</span>
+                <strong>Получите у РосАвт токен компании и базовый URL `@RusAuthOptionsAccessor.Value.BaseUrl`.</strong>
+            </div>
+            <div class="data-item">
+                <span>Шаг 2</span>
+                <strong>Настройте свой callback URL и Bearer-токен для приёма вебхук.</strong>
+            </div>
+            <div class="data-item">
+                <span>Шаг 3</span>
+                <strong>Вызовите `CallToConfirm`, сохраните `TransactionId` и номер РосАвт.</strong>
+            </div>
+            <div class="data-item">
+                <span>Шаг 4</span>
+                <strong>Дождитесь вебхук или выполните ручную проверку через `CheckConfirmation`.</strong>
+            </div>
+            <div class="data-item">
+                <span>Шаг 5</span>
+                <strong>После `Success` примените уже свои локальные правила входа или подтверждения.</strong>
+            </div>
+        </div>
+        <p class="inline-note">
+            РосАвт не подменяет вашу SSO-модель. Он даёт только защищённый внешний механизм подтверждения звонком.
+        </p>
+    </article>
+
+    <article class="status-card">
+        <h2>Что получает клиент</h2>
+        <p>
+            После интеграции ваше приложение сможет запускать подтверждение звонком, получать результат через вебхук
+            и принимать собственное решение: авторизовать пользователя, подтвердить действие или запросить
+            дополнительную проверку.
+        </p>
+        <p>
+            Для подключения нужны только токен компании, базовый URL `@RusAuthOptionsAccessor.Value.BaseUrl` и ваш
+            callback URL.
+            Если вебхук временно недоступен, вы всегда можете проверить результат вручную через `CheckConfirmation`.
+        </p>
+    </article>
+</section>
+
+<section class="detail-grid">
+    <article class="code-card">
+        <h2>appsettings.json</h2>
+        <pre><code>@CodeSamples.BuildAppSettings(RusAuthOptionsAccessor.Value.BaseUrl)</code></pre>
+    </article>
+    <article class="code-card">
+        <h2>Program.cs</h2>
+        <pre><code>@CodeSamples.ProgramRegistration</code></pre>
+    </article>
+</section>
+
+<section class="detail-grid">
+    <article class="code-card">
+        <h2>Запуск подтверждения</h2>
+        <pre><code>@CodeSamples.CallToConfirmFlow</code></pre>
+    </article>
+    <article class="code-card">
+        <h2>Ручная проверка статуса</h2>
+        <pre><code>@CodeSamples.CheckConfirmationFlow</code></pre>
+    </article>
+</section>
+
+<section class="detail-grid">
+    <article class="code-card">
+        <h2>Вебхук-контракт</h2>
+        <pre><code>@CodeSamples.WebHookContract</code></pre>
+    </article>
+    <article class="code-card">
+        <h2>Что должен сделать клиент</h2>
+        <pre><code>@CodeSamples.ClientResponsibility</code></pre>
+    </article>
+</section>

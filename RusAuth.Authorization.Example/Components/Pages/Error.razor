@@ -1,0 +1,36 @@
+@page "/Error"
+@inject IOptions<RusAuthOptions> RusAuthOptionsAccessor
+
+<PageTitle>Ошибка</PageTitle>
+
+<div class="info-card">
+    <h1>Не удалось выполнить запрос</h1>
+    <p>
+        Пример не смог завершить текущую операцию. Обычно это означает, что нужно проверить настройки подключения к
+        РосАвт или доступность вашего callback URL.
+    </p>
+    <div class="data-list">
+        <div class="data-item">
+            <span>RusAuth.BaseUrl</span>
+            <strong>@RusAuthOptionsAccessor.Value.BaseUrl</strong>
+        </div>
+    </div>
+
+    @if (ShowRequestId)
+    {
+        <p>
+            <strong>Идентификатор запроса:</strong> <code>@RequestId</code>
+        </p>
+    }
+
+    <h2>Что проверить</h2>
+    <p>
+        Убедитесь, что в <code>appsettings.json</code> заданы корректные значения <code>RusAuth:BaseUrl</code> и
+        <code>RusAuth:Token</code>, а endpoint <code>/api/rusauth/callback/confirmation</code> доступен извне РосАвт.
+    </p>
+    <p>
+        Если ошибка связана с callback, проверьте, что ваш Bearer-токен для callback совпадает со значением
+        <code>Example:CallbackBearerToken</code>. Для локальной диагностики используйте
+        <code>ASPNETCORE_ENVIRONMENT=Development</code>.
+    </p>
+</div>

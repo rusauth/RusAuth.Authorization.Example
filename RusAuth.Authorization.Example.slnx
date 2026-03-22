@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="RusAuth.Authorization.Example.Tests/RusAuth.Authorization.Example.Tests.csproj" />
+  <Project Path="RusAuth.Authorization.Example/RusAuth.Authorization.Example.csproj" />
+</Solution>

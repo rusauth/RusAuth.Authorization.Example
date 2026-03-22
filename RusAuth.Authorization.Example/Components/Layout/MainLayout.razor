@@ -1,0 +1,44 @@
+@inherits LayoutComponentBase
+@inject ExampleAuthSession Session
+
+<div class="shell">
+    <aside class="shell-sidebar">
+        <NavMenu/>
+    </aside>
+
+    <main class="shell-main">
+        <header class="shell-header">
+            <div>
+                <p class="shell-eyebrow">Публичный REST-пример</p>
+                <h1 class="shell-title">Пример авторизации</h1>
+            </div>
+
+            <div
+                class="shell-status @(string.IsNullOrWhiteSpace(Session.CurrentTransactionId) ? "shell-status-anonymous" : "shell-status-authenticated")">
+                @(string.IsNullOrWhiteSpace(Session.CurrentTransactionId)
+                    ? "Ожидает запуска подтверждения"
+                    : $"Активная транзакция: {Session.CurrentTransactionId}")
+            </div>
+        </header>
+
+        @if (!string.IsNullOrWhiteSpace(Session.InfoMessage))
+        {
+            <div class="shell-message shell-message-info">@Session.InfoMessage</div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(Session.ErrorMessage))
+        {
+            <div class="shell-message shell-message-error">@Session.ErrorMessage</div>
+        }
+
+        <article class="shell-content">
+            @Body
+        </article>
+    </main>
+</div>
+
+<div id="blazor-error-ui" data-nosnippet>
+    Произошла необработанная ошибка.
+    <a href="." class="reload">Перезагрузить</a>
+    <span class="dismiss">x</span>
+</div>

@@ -1,0 +1,107 @@
+@page "/authorize"
+@rendermode InteractiveServer
+
+<PageTitle>Подтверждение</PageTitle>
+
+<div class="two-column">
+    <section class="form-card">
+        <p class="eyebrow">Шаг 1</p>
+        <h2>Запуск подтверждения звонком</h2>
+        <p>
+            Укажите номер клиента. Пример отправит запрос в РосАвт, передаст вебхук вашего приложения и сохранит
+            возвращённый <code>ID транзакции
+            </code>.
+        </p>
+        <p class="shell-message shell-message-info">
+            После callback экран обновится автоматически через SignalR. Ручная проверка нужна только как резервный
+            сценарий.
+        </p>
+
+        <EditForm Model="Model" OnValidSubmit="SubmitAsync">
+            <DataAnnotationsValidator/>
+            <ValidationSummary/>
+
+            <div class="field-grid">
+                <div class="field-group">
+                    <label for="countryCode">Код страны</label>
+                    <InputNumber id="countryCode" class="form-control" @bind-Value="Model.CountryCode"/>
+                </div>
+
+                <div class="field-group">
+                    <label for="number">Номер телефона</label>
+                    <InputText id="number" class="form-control" @bind-Value="Model.Number"/>
+                </div>
+            </div>
+
+            <div class="field-grid">
+                <div class="field-group">
+                    <label for="expiration">Срок ожидания, минут</label>
+                    <InputNumber id="expiration" class="form-control" @bind-Value="Model.ExpirationMinute"/>
+                </div>
+
+                <div class="field-group">
+                    <label for="callback">Вебхук</label>
+                    <input id="callback" class="form-control" value="@GetCallbackUrl()" readonly/>
+                </div>
+            </div>
+
+            <div class="field-actions">
+                <button class="primary-button" type="submit" disabled="@IsBusy">Запустить подтверждение</button>
+                <button class="secondary-button" type="button" disabled="@IsBusy" @onclick="CheckStatusAsync">Проверить
+                    статус вручную
+                </button>
+                <button class="secondary-button" type="button" disabled="@IsBusy" @onclick="RefreshAsync">Обновить из
+                    локального журнала
+                </button>
+            </div>
+        </EditForm>
+    </section>
+
+    <section class="status-card">
+        <p class="eyebrow">Шаг 2</p>
+        <h2>Текущая транзакция</h2>
+
+        @if (CurrentFlow is null)
+        {
+            <p>Активная транзакция ещё не запущена.</p>
+        }
+        else
+        {
+            <div class="status-row">
+                <span class="@GetStatusCssClass(CurrentFlow.Status)">@GetStatusText(CurrentFlow.Status)</span>
+            </div>
+
+            <div class="data-list">
+                <div class="data-item">
+                    <span>ID транзакции</span>
+                    <strong>@CurrentFlow.TransactionId</strong>
+                </div>
+                <div class="data-item">
+                    <span>Номер клиента</span>
+                    <strong>@CurrentFlow.ClientPhoneNumber.ToDisplayString()</strong>
+                </div>
+                <div class="data-item">
+                    <span>Номер РосАвт</span>
+                    <strong>@CurrentFlow.ConfirmationPhoneNumber.ToDisplayString()</strong>
+                </div>
+                <div class="data-item">
+                    <span>Создано</span>
+                    <strong>@FormatDate(CurrentFlow.CreatedOn)</strong>
+                </div>
+                <div class="data-item">
+                    <span>Callback получен</span>
+                    <strong>@FormatDate(CurrentFlow.CallbackReceivedOn)</strong>
+                </div>
+                <div class="data-item">
+                    <span>Ручная проверка</span>
+                    <strong>@FormatDate(CurrentFlow.LastManualCheckOn)</strong>
+                </div>
+            </div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(LocalError))
+        {
+            <p class="shell-message shell-message-error">@LocalError</p>
+        }
+    </section>
+</div>

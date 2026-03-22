@@ -1,0 +1,57 @@
+@page "/"
+@rendermode InteractiveServer
+@inject IOptions<RusAuthOptions> RusAuthOptionsAccessor
+
+<PageTitle>Обзор</PageTitle>
+
+<section class="hero-card">
+    <div class="hero-copy">
+        <p class="eyebrow">Публичный пример</p>
+        <h1>Интеграция с РосАвт через внешний REST-контур</h1>
+        <p class="lead">
+            Этот Blazor Web App показывает, как внешняя система вызывает РосАвт только для механизма
+            подтверждения звонком через <code>@RusAuthOptionsAccessor.Value.BaseUrl</code>.
+        </p>
+        <div class="hero-actions">
+            <a class="hero-button" href="guide">Открыть руководство</a>
+            <a class="hero-button hero-button-secondary" href="authorize">Запустить подтверждение</a>
+        </div>
+    </div>
+
+    <div class="hero-panel">
+        <h2>Что показывает пример</h2>
+        <ul class="feature-list">
+            <li>Отправка внешнего запроса на подтверждение звонком по номеру клиента.</li>
+            <li>Получение номера РосАвт, на который должен позвонить пользователь.</li>
+            <li>Приём вебхук-уведомления от РосАвт в API клиента.</li>
+            <li>Ручная проверка статуса через <code>CheckConfirmation</code>, если вебхук недоступен.</li>
+            <li>Журнал подтверждений, пригодный как обучающий шаблон для собственной SSO-логики клиента.</li>
+        </ul>
+    </div>
+</section>
+
+<section class="card-grid">
+    <article class="info-card">
+        <h2>Готово для клиентов</h2>
+        <p>
+            Сценарий подходит для сайтов, личных кабинетов, мобильных приложений и корпоративных систем.
+            Для подключения нужны только токен компании, базовый URL РосАвт и ваш callback-адрес.
+        </p>
+    </article>
+
+    <article class="info-card">
+        <h2>Обучающий формат</h2>
+        <p>
+            Страницы намеренно простые и прямые. Каждое действие соответствует одному вызову пакета, чтобы интеграцию
+            было легко повторить в вашем проекте без лишней обвязки.
+        </p>
+    </article>
+
+    <article class="info-card">
+        <h2>Граница ответственности</h2>
+        <p>
+            RusAuth в этом сценарии даёт механизм подтверждения звонком, а логика входа, выдача локальных токенов,
+            права доступа и модель пользователя остаются под вашим контролем.
+        </p>
+    </article>
+</section>

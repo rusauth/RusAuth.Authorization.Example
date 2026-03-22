@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1600" viewBox="0 0 1600 1600" fill="none">
+    <defs>
+        <linearGradient id="bgGlow" x1="250" y1="150" x2="1350" y2="1450" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#0F1D52"/>
+            <stop offset="0.55" stop-color="#08173C"/>
+            <stop offset="1" stop-color="#040C24"/>
+        </linearGradient>
+
+        <radialGradient id="halo" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse"
+                        gradientTransform="translate(800 560) rotate(90) scale(560 560)">
+            <stop offset="0" stop-color="#56F0FF" stop-opacity="0.28"/>
+            <stop offset="0.4" stop-color="#2D9CFF" stop-opacity="0.16"/>
+            <stop offset="1" stop-color="#2D9CFF" stop-opacity="0"/>
+        </radialGradient>
+
+        <linearGradient id="lockBody" x1="480" y1="310" x2="1120" y2="1010" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#6BFFFF"/>
+            <stop offset="0.42" stop-color="#44C8FF"/>
+            <stop offset="1" stop-color="#4E5DFF"/>
+        </linearGradient>
+
+        <linearGradient id="lockInner" x1="570" y1="430" x2="1030" y2="930" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#8AFFFF" stop-opacity="0.9"/>
+            <stop offset="0.5" stop-color="#59DAFF" stop-opacity="0.55"/>
+            <stop offset="1" stop-color="#6C69FF" stop-opacity="0.2"/>
+        </linearGradient>
+
+        <linearGradient id="shackle" x1="800" y1="170" x2="800" y2="430" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#8DFFFF"/>
+            <stop offset="1" stop-color="#4D7DFF"/>
+        </linearGradient>
+
+        <linearGradient id="keyEdge" x1="800" y1="470" x2="800" y2="825" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#7EFFFF"/>
+            <stop offset="1" stop-color="#3CA8FF"/>
+        </linearGradient>
+
+        <linearGradient id="wordmark" x1="440" y1="1070" x2="1160" y2="1250" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#FFFFFF"/>
+            <stop offset="0.45" stop-color="#E7FCFF"/>
+            <stop offset="1" stop-color="#C9F2FF"/>
+        </linearGradient>
+
+        <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="14" result="blur"/>
+            <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0
+                                                      0 1 0 0 0.95
+                                                      0 0 1 0 1
+                                                      0 0 0 0.9 0"/>
+            <feBlend in="SourceGraphic"/>
+        </filter>
+
+        <filter id="textGlow" x="-50%" y="-120%" width="200%" height="300%">
+            <feGaussianBlur stdDeviation="18" result="blur1"/>
+            <feColorMatrix in="blur1" type="matrix" values="1 0 0 0 0.30
+                                                       0 1 0 0 0.95
+                                                       0 0 1 0 1
+                                                       0 0 0 1 0"/>
+            <feGaussianBlur stdDeviation="6" result="blur2"/>
+            <feMerge>
+                <feMergeNode in="blur1"/>
+                <feMergeNode in="blur2"/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+
+        <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+            <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#030915" flood-opacity="0.6"/>
+        </filter>
+
+        <clipPath id="bodyClip">
+            <path d="M620 360H980L1140 640L980 920H620L460 640L620 360Z"/>
+        </clipPath>
+    </defs>
+
+    <rect width="1600" height="1600" fill="transparent"/>
+    <circle cx="800" cy="560" r="560" fill="url(#halo)"/>
+
+    <g filter="url(#shadow)">
+        <g filter="url(#softGlow)">
+            <path d="M678 412V304C678 232 736 174 808 174C880 174 938 232 938 304V412"
+                  stroke="url(#shackle)" stroke-width="28" stroke-linecap="round"/>
+            <path d="M710 412V306C710 252 754 208 808 208C862 208 906 252 906 306V412"
+                  stroke="#103A9F" stroke-opacity="0.7" stroke-width="12" stroke-linecap="round"/>
+
+            <path d="M620 360H980L1140 640L980 920H620L460 640L620 360Z"
+                  fill="url(#lockInner)" stroke="url(#lockBody)" stroke-width="20" stroke-linejoin="round"/>
+
+            <path d="M665 428H935L1060 640L935 852H665L540 640L665 428Z"
+                  stroke="#72F8FF" stroke-opacity="0.85" stroke-width="10" stroke-linejoin="round"/>
+
+            <g clip-path="url(#bodyClip)" stroke="#6CF9FF" stroke-width="11" stroke-linecap="round"
+               stroke-linejoin="round">
+                <path d="M516 556H634"/>
+                <path d="M508 640H612"/>
+                <path d="M520 724H634"/>
+                <path d="M560 512H670"/>
+                <path d="M560 768H670"/>
+                <path d="M594 482H700"/>
+                <path d="M594 798H700"/>
+                <path d="M640 450H724"/>
+                <path d="M640 830H724"/>
+
+                <path d="M568 512L616 456"/>
+                <path d="M594 482L630 430"/>
+                <path d="M568 768L616 824"/>
+                <path d="M594 798L630 850"/>
+
+                <path d="M966 556H1084"/>
+                <path d="M988 640H1092"/>
+                <path d="M966 724H1080"/>
+                <path d="M946 512H1056"/>
+                <path d="M946 768H1056"/>
+                <path d="M916 482H1022"/>
+                <path d="M916 798H1022"/>
+                <path d="M876 450H960"/>
+                <path d="M876 830H960"/>
+
+                <path d="M1002 512L954 456"/>
+                <path d="M976 482L940 430"/>
+                <path d="M1002 768L954 824"/>
+                <path d="M976 798L940 850"/>
+            </g>
+
+            <g fill="#6FFBFF">
+                <circle cx="620" cy="640" r="28"/>
+                <circle cx="980" cy="640" r="28"/>
+                <circle cx="652" cy="556" r="14"/>
+                <circle cx="948" cy="556" r="14"/>
+                <circle cx="652" cy="724" r="14"/>
+                <circle cx="948" cy="724" r="14"/>
+            </g>
+
+            <path d="M800 462L888 512V628L858 655L892 820H708L742 655L712 628V512L800 462Z"
+                  fill="#102D73" fill-opacity="0.88" stroke="url(#keyEdge)" stroke-width="12" stroke-linejoin="round"/>
+            <path d="M800 514C828 514 850 536 850 564V630L882 660L854 786H746L718 660L750 630V564C750 536 772 514 800 514Z"
+                  fill="#041227"/>
+            <path d="M800 525L836 548V619L866 646L844 756H756L734 646L764 619V548L800 525Z"
+                  fill="url(#bgGlow)" opacity="0.35"/>
+
+            <path d="M694 404H906" stroke="#D5FFFF" stroke-opacity="0.45" stroke-width="6" stroke-linecap="round"/>
+        </g>
+    </g>
+
+    <g filter="url(#textGlow)">
+        <text x="800" y="1185"
+              text-anchor="middle"
+              font-family="Arial, Helvetica, sans-serif"
+              font-size="158"
+              font-weight="800"
+              letter-spacing="18"
+              fill="url(#wordmark)">РОСАВТ
+        </text>
+    </g>
+</svg>

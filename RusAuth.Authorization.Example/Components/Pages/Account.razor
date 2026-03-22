@@ -1,0 +1,79 @@
+@page "/account"
+@rendermode InteractiveServer
+
+<PageTitle>Журнал</PageTitle>
+
+<section class="form-card">
+    <p class="eyebrow">Локальный журнал примера</p>
+    <h1>История подтверждений</h1>
+    <p>
+        Здесь отображаются подтверждения, которые этот пример запускал через РосАвт. Это не кабинет РосАвт, а
+        локальное состояние интеграционного примера.
+    </p>
+    <p class="shell-message shell-message-info">
+        Новые callback-события приходят на эту страницу автоматически через SignalR.
+    </p>
+    <div class="field-actions">
+        <button class="secondary-button" type="button" @onclick="RefreshAsync">Обновить экран</button>
+    </div>
+    <div class="data-list">
+        <div class="data-item">
+            <span>Текущая транзакция</span>
+            <strong>@CurrentTransactionId.OrDefaultText("ещё не запускалась")</strong>
+        </div>
+        <div class="data-item">
+            <span>Bearer токен для callback</span>
+            <strong>@CallbackBearerTokenPreview.MaskSecret()</strong>
+        </div>
+    </div>
+</section>
+
+@if (Flows.Count == 0)
+{
+    <section class="info-card">
+        <p>Журнал пока пуст. Перейдите на страницу «Подтверждение» и запустите первый запрос.</p>
+    </section>
+}
+else
+{
+    <section class="form-card">
+        <div class="session-table-wrapper">
+            <table class="session-table">
+                <thead>
+                <tr>
+                    <th>ID транзакции
+                    </th>
+                    <th>Клиент / номер РосАвт</th>
+                    <th>Вебхук</th>
+                    <th>Статус</th>
+                    <th>Даты</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (var flow in Flows)
+                {
+                    <tr>
+                        <td data-label="ID транзакции
+">
+                            <strong>@flow.TransactionId</strong>
+                        </td>
+                        <td data-label="Номера">
+                            <strong>@flow.ClientPhoneNumber.ToDisplayString()</strong><br/>
+                            @flow.ConfirmationPhoneNumber.ToDisplayString()
+                        </td>
+                        <td data-label="Вебхук">@flow.WebHook</td>
+                        <td data-label="Статус">
+                            <span class="@GetStatusCssClass(flow.Status)">@flow.Status.ToDisplayString()</span>
+                        </td>
+                        <td data-label="Даты">
+                            Создано: @FormatDate(flow.CreatedOn)<br/>
+                            Callback: @FormatDate(flow.CallbackReceivedOn)<br/>
+                            Проверка: @FormatDate(flow.LastManualCheckOn)
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </section>
+}

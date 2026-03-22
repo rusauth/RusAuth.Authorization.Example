@@ -1,0 +1,23 @@
+*.suo
+*.user
+_ReSharper.*
+bin
+obj
+packages
+.idea/*
+
+.vs/
+[Bb]in/
+[Oo]bj/
+_UpgradeReport_Files/
+[Pp]ackages/
+
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Local 
+**/appsettings.Production.json
+appsettings.Local.json 
+**/appsettings.Development.Local.json
+**/appsettings.Development.json
