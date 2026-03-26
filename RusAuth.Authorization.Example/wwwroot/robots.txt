@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /account
+Disallow: /Error
+Disallow: /not-found
+Sitemap: https://example-demo.rusauth.ru/sitemap.xml
