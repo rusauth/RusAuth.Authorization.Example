@@ -125,6 +125,7 @@ The production deployment uses:
 - namespace: `rusauth-example-demo`
 
 The chart expects a runtime secret named `rusauth-authorization-example-secrets`.
+HTTP to HTTPS redirection is handled at the Gateway. The app itself serves plain HTTP on port `8080` inside the cluster.
 
 ## Operational note
 

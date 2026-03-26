@@ -18,7 +18,7 @@ service:
 
 appConfig:
   aspnetcoreEnvironment: Production
-  aspnetcoreUrls: http://+:8080
+  aspnetcoreHttpPorts: "8080"
   allowedHosts: "*"
   rusAuthBaseUrl: https://rusauth.ru/auth-client-api/
   rusAuthTimeout: 15
@@ -44,9 +44,8 @@ existingSecretName: rusauth-authorization-example-secrets
 gateway:
   name: edge
   namespace: gateway-system
-  sectionNames:
-    - http
-    - https
+  httpSectionName: http
+  httpsSectionName: https
   hostnames:
     - example-demo.rusauth.ru
   pathPrefix: /

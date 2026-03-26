@@ -6,7 +6,7 @@ metadata:
     {{- include "rusauth-authorization-example.labels" . | nindent 4 }}
 data:
   ASPNETCORE_ENVIRONMENT: {{ .Values.appConfig.aspnetcoreEnvironment | quote }}
-  ASPNETCORE_URLS: {{ .Values.appConfig.aspnetcoreUrls | quote }}
+  ASPNETCORE_HTTP_PORTS: {{ .Values.appConfig.aspnetcoreHttpPorts | quote }}
   AllowedHosts: {{ .Values.appConfig.allowedHosts | quote }}
   RusAuth__BaseUrl: {{ .Values.appConfig.rusAuthBaseUrl | quote }}
   RusAuth__TimeOut: {{ .Values.appConfig.rusAuthTimeout | quote }}
