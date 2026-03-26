@@ -17,6 +17,8 @@ spec:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
         deploy.stamp: {{ .Values.deployment.stamp | default "" | quote }}
     spec:
+      securityContext:
+        fsGroup: {{ .Values.podSecurityContext.fsGroup }}
       {{- if .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- range .Values.imagePullSecrets }}
@@ -36,6 +38,9 @@ spec:
                 name: {{ include "rusauth-authorization-example.fullname" . }}-config
             - secretRef:
                 name: {{ .Values.existingSecretName }}
+          volumeMounts:
+            - name: data-protection
+              mountPath: {{ .Values.persistence.mountPath | quote }}
           livenessProbe:
             httpGet:
               path: /health/live
@@ -54,4 +59,11 @@ spec:
             failureThreshold: 3
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-
+      volumes:
+        - name: data-protection
+          {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ if .Values.persistence.existingClaim }}{{ .Values.persistence.existingClaim }}{{ else }}{{ include "rusauth-authorization-example.fullname" . }}-data-protection{{ end }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}

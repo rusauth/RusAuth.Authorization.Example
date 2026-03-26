@@ -10,6 +10,6 @@ data:
   AllowedHosts: {{ .Values.appConfig.allowedHosts | quote }}
   RusAuth__BaseUrl: {{ .Values.appConfig.rusAuthBaseUrl | quote }}
   RusAuth__TimeOut: {{ .Values.appConfig.rusAuthTimeout | quote }}
+  DataProtection__KeyRingPath: {{ .Values.appConfig.dataProtectionKeyRingPath | quote }}
   Logging__LogLevel__Default: {{ .Values.appConfig.logging.default | quote }}
   Logging__LogLevel__Microsoft__AspNetCore: {{ .Values.appConfig.logging.microsoftAspNetCore | quote }}
-

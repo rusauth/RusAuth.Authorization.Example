@@ -36,8 +36,8 @@ Important:
 
 The example consumes public NuGet packages:
 
-- `RusAuth.Authorization` `1.0.1`
-- `RusAuth.Authorization.Contracts` `1.0.1`
+- `RusAuth.Authorization` `1.0.2`
+- `RusAuth.Authorization.Contracts` `1.0.2`
 
 Standard `dotnet restore` uses NuGet.org. No private feed is required for the published package versions.
 
@@ -78,6 +78,20 @@ Runtime configuration is provided through Kubernetes secrets:
 - `Example__CallbackBearerToken`
 
 The callback bearer token is created in Kubernetes on first deploy and reused on later deploys unless a manual workflow run explicitly rotates it.
+
+## Data Protection
+
+The example uses ASP.NET Core antiforgery for the interactive server UI, so the Data Protection key ring must survive pod restarts.
+
+The Helm chart now mounts a persistent volume and stores the key ring at:
+
+- `/var/lib/rusauth-authorization-example/data-protection`
+
+If that storage is removed or the key ring changes unexpectedly, browsers may send stale antiforgery cookies and the app can log:
+
+- `The antiforgery token could not be decrypted.`
+
+In that case the deployment is healthy, but existing browser cookies are no longer valid. A browser refresh or cookie clear will issue a new token.
 
 ## CI/CD
 

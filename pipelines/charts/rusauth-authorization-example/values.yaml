@@ -22,9 +22,22 @@ appConfig:
   allowedHosts: "*"
   rusAuthBaseUrl: https://rusauth.ru/auth-client-api/
   rusAuthTimeout: 15
+  dataProtectionKeyRingPath: /var/lib/rusauth-authorization-example/data-protection
   logging:
     default: Information
     microsoftAspNetCore: Warning
+
+podSecurityContext:
+  fsGroup: 1654
+
+persistence:
+  enabled: true
+  existingClaim: ""
+  storageClassName: ""
+  accessModes:
+    - ReadWriteOnce
+  size: 1Gi
+  mountPath: /var/lib/rusauth-authorization-example/data-protection
 
 existingSecretName: rusauth-authorization-example-secrets
 

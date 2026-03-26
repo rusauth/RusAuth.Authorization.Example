@@ -9,8 +9,8 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.5"/>
-        <PackageReference Include="RusAuth.Authorization" Version="1.0.1"/>
-        <PackageReference Include="RusAuth.Authorization.Contracts" Version="1.0.1"/>
+        <PackageReference Include="RusAuth.Authorization" Version="1.0.2"/>
+        <PackageReference Include="RusAuth.Authorization.Contracts" Version="1.0.2"/>
     </ItemGroup>
 
 </Project>
