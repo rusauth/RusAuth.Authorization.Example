@@ -60,7 +60,7 @@ Tracked `appsettings.json` keeps only the public defaults:
 ```json
 {
   "RusAuth": {
-    "BaseUrl": "https://rusauth.ru/auth-client-api/",
+    "BaseUrl": "https://rusauth.ru/",
     "Token": "",
     "TimeOut": 15
   },
