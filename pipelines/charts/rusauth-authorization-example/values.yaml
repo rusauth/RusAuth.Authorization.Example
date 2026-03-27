@@ -20,7 +20,7 @@ appConfig:
   aspnetcoreEnvironment: Production
   aspnetcoreHttpPorts: "8080"
   allowedHosts: "*"
-  rusAuthBaseUrl: https://rusauth.ru/
+  rusAuthBaseUrl: https://auth-client.rusauth.ru/
   rusAuthTimeout: 15
   dataProtectionKeyRingPath: /var/lib/rusauth-authorization-example/data-protection
   logging:
