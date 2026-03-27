@@ -24,6 +24,7 @@ env:
   CHART_PATH: pipelines/charts/rusauth-authorization-example
   APP_SECRET_NAME: rusauth-authorization-example-secrets
   PUBLISH_OUTPUT: artifacts/publish
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
 permissions:
   contents: read
@@ -35,10 +36,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
@@ -86,7 +87,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Download published application
         uses: actions/download-artifact@v4
