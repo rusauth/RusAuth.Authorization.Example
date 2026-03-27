@@ -24,9 +24,9 @@ public static class ConfigurationExtensions
         services.AddRusAuthConfirmationClient(configuration.GetRequiredConfiguration<RusAuthOptions>("RusAuth"));
         services.AddScoped<CallbackBearerAuthorizationFilter>();
         services.AddSingleton<ExampleConfirmationStore>();
+        services.AddSingleton<IExampleConfirmationNotifier, ExampleConfirmationNotifier>();
         services.AddScoped<ExampleAuthSession>();
         services.AddScoped<ExampleAuthFacade>();
-        services.AddScoped<IExampleConfirmationSignalRClient, ExampleConfirmationSignalRClient>();
 
         return services;
     }

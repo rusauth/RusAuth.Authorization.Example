@@ -1,6 +1,7 @@
 namespace RusAuth.Authorization.Example.Services;
 
 using Contracts.Rest;
+using Infrastructure;
 using Microsoft.Extensions.Options;
 
 public sealed class ExampleAuthFacade(
@@ -17,6 +18,10 @@ public sealed class ExampleAuthFacade(
                                                                       int expirationMinute,
                                                                       CancellationToken cancellationToken = default)
     {
+        logger.LogInformation("Starting RusAuth confirmation flow. PhoneNumber={PhoneNumber} CallbackUrl={CallbackUrl} ExpirationMinute={ExpirationMinute}",
+                              phoneNumber.ToDisplayString(),
+                              callbackUrl,
+                              expirationMinute);
         var request = new RusAuthCallToConfirmRequest
         {
             PhoneNumber = phoneNumber,
@@ -41,6 +46,10 @@ public sealed class ExampleAuthFacade(
         var transactionId = session.CurrentTransactionId ??
                             throw new InvalidOperationException("Нет активной транзакции подтверждения.");
 
+        logger.LogInformation("Checking RusAuth confirmation status manually. TransactionId={TransactionId} PhoneNumber={PhoneNumber}",
+                              transactionId,
+                              phoneNumber.ToDisplayString());
+
         var status = await rusAuthClient.CheckConfirmationAsync(new()
         {
             PhoneNumber = phoneNumber,
@@ -57,6 +66,10 @@ public sealed class ExampleAuthFacade(
                             RusAuthConfirmationStatus.Expired => "РосАвт сообщил, что срок подтверждения истёк.",
                             _                                 => "РосАвт всё ещё ожидает подтверждение."
                         });
+
+        logger.LogInformation("RusAuth confirmation status check completed. TransactionId={TransactionId} Status={Status}",
+                              transactionId,
+                              status);
 
         return flow;
     }

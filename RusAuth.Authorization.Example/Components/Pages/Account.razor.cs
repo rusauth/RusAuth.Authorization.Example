@@ -14,21 +14,18 @@ public partial class Account : IDisposable
     private ExampleAuthSession Session { get; set; } = default!;
 
     [Inject]
-    private IExampleConfirmationSignalRClient ConfirmationSignalRClient { get; set; } = default!;
-
-    [Inject]
-    private NavigationManager NavigationManager { get; set; } = default!;
+    private IExampleConfirmationNotifier ConfirmationNotifier { get; set; } = default!;
 
     protected IReadOnlyCollection<ExampleConfirmationFlow> Flows => Facade.GetTrackedFlows();
     protected string? CurrentTransactionId => Session.CurrentTransactionId;
     protected string CallbackBearerTokenPreview => Facade.GetCallbackBearerTokenPreview();
 
-    public void Dispose() => ConfirmationSignalRClient.ConfirmationUpdated -= OnConfirmationUpdatedAsync;
+    public void Dispose() => ConfirmationNotifier.ConfirmationUpdated -= OnConfirmationUpdatedAsync;
 
     protected override async Task OnInitializedAsync()
     {
-        ConfirmationSignalRClient.ConfirmationUpdated += OnConfirmationUpdatedAsync;
-        await ConfirmationSignalRClient.EnsureConnectedAsync(new(NavigationManager.BaseUri));
+        ConfirmationNotifier.ConfirmationUpdated += OnConfirmationUpdatedAsync;
+        await Task.CompletedTask;
     }
 
     protected Task RefreshAsync()

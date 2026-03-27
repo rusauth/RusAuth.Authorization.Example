@@ -5,12 +5,10 @@ using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using global::RusAuth.Authorization.Contracts.Rest;
 using RusAuth.Authorization.Example.Controllers;
-using RusAuth.Authorization.Example.Hubs;
 using RusAuth.Authorization.Example.Infrastructure;
 using RusAuth.Authorization.Example.Services;
 
@@ -50,7 +48,7 @@ public sealed class RusAuthCallbackControllerTests
     }
 
     [Fact]
-    public async Task Confirmation_Should_Update_Store_And_Publish_SignalR_Event()
+    public async Task Confirmation_Should_Update_Store_And_Publish_Notifier_Event()
     {
         var store = new ExampleConfirmationStore();
         store.Start(new()
@@ -65,10 +63,9 @@ public sealed class RusAuthCallbackControllerTests
             WebHookBearerToken = "callback-token"
         });
 
-        var clientProxy = new RecordingClientProxy();
-        var hubContext = new FakeHubContext(clientProxy);
+        var notifier = new RecordingConfirmationNotifier();
         var controller = new RusAuthCallbackController(store,
-                                                       hubContext,
+                                                       notifier,
                                                        NullLogger<RusAuthCallbackController>.Instance)
         {
             ControllerContext = new()
@@ -88,9 +85,8 @@ public sealed class RusAuthCallbackControllerTests
         var flow = store.Get("tx-001");
         Assert.NotNull(flow);
         Assert.Equal(RusAuthConfirmationStatus.Success, flow.Status);
-        Assert.Equal(ExampleConfirmationHub.ConfirmationUpdatedMethod, clientProxy.MethodName);
 
-        var payload = Assert.IsType<ExampleConfirmationUpdate>(Assert.Single(clientProxy.Arguments));
+        var payload = Assert.IsType<ExampleConfirmationUpdate>(Assert.Single(notifier.PublishedUpdates));
         Assert.Equal("tx-001", payload.TransactionId);
         Assert.Equal(RusAuthConfirmationStatus.Success, payload.Status);
     }
@@ -111,40 +107,18 @@ public sealed class RusAuthCallbackControllerTests
         return new AuthorizationFilterContext(actionContext, []);
     }
 
-    private sealed class FakeHubContext(RecordingClientProxy clientProxy) : IHubContext<ExampleConfirmationHub>
+    private sealed class RecordingConfirmationNotifier : IExampleConfirmationNotifier
     {
-        public IHubClients Clients { get; } = new FakeHubClients(clientProxy);
-        public IGroupManager Groups { get; } = new FakeGroupManager();
-    }
-
-    private sealed class FakeHubClients(RecordingClientProxy clientProxy) : IHubClients
-    {
-        public IClientProxy All => clientProxy;
-        public IClientProxy AllExcept(IReadOnlyList<string> excludedConnectionIds) => clientProxy;
-        public IClientProxy Client(string connectionId) => clientProxy;
-        public IClientProxy Clients(IReadOnlyList<string> connectionIds) => clientProxy;
-        public IClientProxy Group(string groupName) => clientProxy;
-        public IClientProxy GroupExcept(string groupName, IReadOnlyList<string> excludedConnectionIds) => clientProxy;
-        public IClientProxy Groups(IReadOnlyList<string> groupNames) => clientProxy;
-        public IClientProxy User(string userId) => clientProxy;
-        public IClientProxy Users(IReadOnlyList<string> userIds) => clientProxy;
-    }
-
-    private sealed class FakeGroupManager : IGroupManager
-    {
-        public Task AddToGroupAsync(string connectionId, string groupName, CancellationToken cancellationToken = default) => Task.CompletedTask;
-        public Task RemoveFromGroupAsync(string connectionId, string groupName, CancellationToken cancellationToken = default) => Task.CompletedTask;
-    }
-
-    private sealed class RecordingClientProxy : IClientProxy
-    {
-        public string MethodName { get; private set; } = string.Empty;
-        public object?[] Arguments { get; private set; } = [];
-
-        public Task SendCoreAsync(string method, object?[] args, CancellationToken cancellationToken = default)
+        public List<ExampleConfirmationUpdate> PublishedUpdates { get; } = [];
+        public event Func<ExampleConfirmationUpdate, Task>? ConfirmationUpdated
         {
-            MethodName = method;
-            Arguments = args;
+            add { }
+            remove { }
+        }
+
+        public Task PublishAsync(ExampleConfirmationUpdate update, CancellationToken cancellationToken = default)
+        {
+            PublishedUpdates.Add(update);
             return Task.CompletedTask;
         }
     }

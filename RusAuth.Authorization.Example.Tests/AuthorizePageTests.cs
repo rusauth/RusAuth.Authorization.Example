@@ -20,7 +20,7 @@ public sealed class AuthorizePageTests : TestContext
         {
             CallbackBearerToken = "test-callback-token"
         }));
-        Services.AddSingleton<IExampleConfirmationSignalRClient>(new FakeExampleConfirmationSignalRClient());
+        Services.AddSingleton<IExampleConfirmationNotifier>(new FakeExampleConfirmationNotifier());
         Services.AddSingleton<ExampleAuthFacade>(sp => new ExampleAuthFacade(
             sp.GetRequiredService<IRusAuthConfirmationClient>(),
             sp.GetRequiredService<ExampleConfirmationStore>(),
@@ -31,7 +31,7 @@ public sealed class AuthorizePageTests : TestContext
         var cut = RenderComponent<Authorize>();
 
         Assert.Contains("Запуск подтверждения звонком", cut.Markup, StringComparison.Ordinal);
-        Assert.Contains("SignalR", cut.Markup, StringComparison.Ordinal);
+        Assert.Contains("автоматически", cut.Markup, StringComparison.Ordinal);
         Assert.Contains("Вебхук", cut.Markup, StringComparison.Ordinal);
         Assert.NotNull(cut.Find("#callback").GetAttribute("readonly"));
     }
@@ -53,7 +53,7 @@ public sealed class AuthorizePageTests : TestContext
             Task.FromResult(RusAuthConfirmationStatus.Unhandled);
     }
 
-    private sealed class FakeExampleConfirmationSignalRClient : IExampleConfirmationSignalRClient
+    private sealed class FakeExampleConfirmationNotifier : IExampleConfirmationNotifier
     {
         public event Func<ExampleConfirmationUpdate, Task>? ConfirmationUpdated
         {
@@ -61,9 +61,6 @@ public sealed class AuthorizePageTests : TestContext
             remove {}
         }
 
-        public Task EnsureConnectedAsync(Uri applicationBaseUri, CancellationToken cancellationToken = default) =>
-            Task.CompletedTask;
-
-        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+        public Task PublishAsync(ExampleConfirmationUpdate update, CancellationToken cancellationToken = default) => Task.CompletedTask;
     }
 }

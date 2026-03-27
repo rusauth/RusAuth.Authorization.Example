@@ -2,7 +2,6 @@ namespace RusAuth.Authorization.Example;
 
 using System.IO;
 using Components;
-using Hubs;
 using Infrastructure;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -60,7 +59,6 @@ public class Program
             Predicate = static check => check.Tags.Contains("readiness")
         });
         app.MapControllers();
-        app.MapHub<ExampleConfirmationHub>("/hubs/example-confirmations");
         app.MapRazorComponents<App>()
            .AddInteractiveServerRenderMode();
 

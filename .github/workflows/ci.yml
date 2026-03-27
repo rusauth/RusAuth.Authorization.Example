@@ -16,13 +16,14 @@ on:
         type: boolean
 
 env:
-  DOTNET_VERSION: 10.0.x
+  DOTNET_VERSION: 10.0.104
   BUILD_CONFIGURATION: Release
   IMAGE_REPOSITORY: ghcr.io/${{ github.repository_owner }}/rusauth-authorization-example
   KUBE_NAMESPACE: rusauth-example-demo
   HELM_RELEASE: rusauth-authorization-example
   CHART_PATH: pipelines/charts/rusauth-authorization-example
   APP_SECRET_NAME: rusauth-authorization-example-secrets
+  PUBLISH_OUTPUT: artifacts/publish
 
 permissions:
   contents: read
@@ -30,7 +31,7 @@ permissions:
 
 jobs:
   build-test:
-    runs-on: ubuntu-24.04
+    runs-on: windows-2025
 
     steps:
       - name: Checkout
@@ -53,14 +54,30 @@ jobs:
       - name: Run tests
         run: dotnet test RusAuth.Authorization.Example.slnx -c ${{ env.BUILD_CONFIGURATION }} --no-build --nologo --logger "console;verbosity=minimal"
 
-      - name: Build container image
-        run: docker build -t rusauth-authorization-example-ci .
+      - name: Publish application
+        run: dotnet publish RusAuth.Authorization.Example/RusAuth.Authorization.Example.csproj -c ${{ env.BUILD_CONFIGURATION }} --no-build --nologo -o ${{ env.PUBLISH_OUTPUT }}
+
+      - name: Verify Blazor framework assets
+        shell: pwsh
+        run: |
+          $frameworkScript = Join-Path '${{ env.PUBLISH_OUTPUT }}' 'wwwroot/_framework/blazor.web.js'
+          if (-not (Test-Path $frameworkScript)) {
+            throw "Expected Blazor framework script was not published: $frameworkScript"
+          }
+
+      - name: Upload published application
+        uses: actions/upload-artifact@v4
+        with:
+          name: published-app
+          path: ${{ env.PUBLISH_OUTPUT }}
+          if-no-files-found: error
 
       - name: Lint Helm chart
         run: helm lint ./${{ env.CHART_PATH }}
 
       - name: Render Helm chart
-        run: helm template ${{ env.HELM_RELEASE }} ./${{ env.CHART_PATH }} > /tmp/rusauth-authorization-example-chart.yaml
+        shell: pwsh
+        run: helm template ${{ env.HELM_RELEASE }} ./${{ env.CHART_PATH }} > (Join-Path $env:RUNNER_TEMP 'rusauth-authorization-example-chart.yaml')
 
   publish-and-deploy:
     if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
@@ -70,6 +87,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Download published application
+        uses: actions/download-artifact@v4
+        with:
+          name: published-app
+          path: ${{ env.PUBLISH_OUTPUT }}
 
       - name: Setup Helm
         uses: azure/setup-helm@v4
@@ -91,7 +114,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./Dockerfile
+          file: ./Dockerfile.runtime
           push: true
           tags: |
             ${{ env.IMAGE_REPOSITORY }}:sha-${{ github.sha }}

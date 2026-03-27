@@ -1,10 +1,8 @@
 namespace RusAuth.Authorization.Example.Controllers;
 
 using Contracts.Rest;
-using Hubs;
 using Infrastructure;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using Services;
 
 [ApiController]
@@ -12,12 +10,15 @@ using Services;
 [ServiceFilter(typeof(CallbackBearerAuthorizationFilter))]
 public sealed class RusAuthCallbackController(
     ExampleConfirmationStore store,
-    IHubContext<ExampleConfirmationHub> hubContext,
+    IExampleConfirmationNotifier notifier,
     ILogger<RusAuthCallbackController> logger) : ControllerBase
 {
     [HttpPost("confirmation")]
     public async Task<IActionResult> Confirmation([FromBody] RusAuthConfirmationWebHookRequest request)
     {
+        logger.LogInformation("RusAuth callback received. TransactionId={TransactionId} RemoteIp={RemoteIp}",
+                              request.TransactionId,
+                              HttpContext.Connection.RemoteIpAddress?.ToString());
         var flow = store.MarkCallbackReceived(request);
         if (flow is null)
         {
@@ -25,16 +26,15 @@ public sealed class RusAuthCallbackController(
             return NotFound();
         }
 
-        logger.LogInformation("Received RusAuth callback for transaction {TransactionId}", request.TransactionId);
-        await hubContext.Clients.Group(ExampleConfirmationHub.UpdatesGroup)
-                        .SendAsync(ExampleConfirmationHub.ConfirmationUpdatedMethod,
-                                   new ExampleConfirmationUpdate
-                                   {
-                                       TransactionId = flow.TransactionId,
-                                       Status = flow.Status,
-                                       CallbackReceivedOn = flow.CallbackReceivedOn,
-                                       CompletedOn = flow.CompletedOn
-                                   });
+        logger.LogInformation("Received RusAuth callback for transaction {TransactionId}. Publishing update to interactive pages.",
+                              request.TransactionId);
+        await notifier.PublishAsync(new ExampleConfirmationUpdate
+        {
+            TransactionId = flow.TransactionId,
+            Status = flow.Status,
+            CallbackReceivedOn = flow.CallbackReceivedOn,
+            CompletedOn = flow.CompletedOn
+        });
 
         return Ok();
     }

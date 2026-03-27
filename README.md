@@ -101,12 +101,15 @@ GitHub Actions workflow:
   - restore
   - build
   - test
-  - Docker build validation
+  - publish the app with the pinned Windows SDK
+  - verify `wwwroot/_framework/blazor.web.js` exists in the published output
   - Helm lint and render
 - push to `master`
   - repeat the same validation
-  - build and push container image to GHCR
+  - package the published output into the runtime container image and push to GHCR
   - deploy automatically to K3s namespace `rusauth-example-demo`
+
+The runtime image is intentionally built from the already-published app output. This avoids a Linux SDK publish regression that was dropping the Blazor framework assets from the container image.
 
 Required GitHub Actions secrets:
 
@@ -135,3 +138,7 @@ The application runs behind Traefik with TLS termination on the gateway. The app
 - `/health/ready`
 
 for Kubernetes liveness and readiness probes.
+
+## Runtime behavior
+
+The demo pages refresh after callbacks through an in-process confirmation notifier. This keeps the example reliable in the current single-replica deployment and avoids making the server reconnect to its own public URL during prerender.
