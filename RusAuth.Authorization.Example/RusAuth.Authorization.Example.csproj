@@ -8,8 +8,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="RusAuth.Authorization" Version="1.0.2"/>
-        <PackageReference Include="RusAuth.Authorization.Contracts" Version="1.0.2"/>
+        <PackageReference Include="RusAuth.Authorization" Version="1.0.4"/>
+        <PackageReference Include="RusAuth.Authorization.Contracts" Version="1.0.4"/>
     </ItemGroup>
 
 </Project>

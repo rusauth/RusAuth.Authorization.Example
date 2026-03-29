@@ -1,6 +1,6 @@
 namespace RusAuth.Authorization.Example.Services;
 
-using Contracts.Rest;
+using Contracts;
 
 public sealed class ExampleAuthSession
 {
@@ -13,8 +13,6 @@ public sealed class ExampleAuthSession
         CurrentTransactionId = transactionId;
         ErrorMessage = null;
     }
-
-    public void ClearCurrentTransaction() => CurrentTransactionId = null;
 
     public void SetInfo(string message)
     {
@@ -38,9 +36,9 @@ public sealed class ExampleAuthSession
 public sealed record ExampleConfirmationFlow
 {
     public string TransactionId { get; init; } = string.Empty;
-    public RusAuthPhoneNumber ClientPhoneNumber { get; init; } = new();
-    public RusAuthPhoneNumber? ConfirmationPhoneNumber { get; init; }
-    public RusAuthConfirmationStatus Status { get; init; } = RusAuthConfirmationStatus.Unhandled;
+    public string ClientPhoneNumber { get; init; } = string.Empty;
+    public string? ConfirmationPhoneNumber { get; init; }
+    public CallConfirmationStatus Status { get; init; } = CallConfirmationStatus.Unhandled;
     public string WebHook { get; init; } = string.Empty;
     public DateTime CreatedOn { get; init; } = DateTime.UtcNow;
     public DateTime? CompletedOn { get; init; }

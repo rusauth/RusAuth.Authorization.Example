@@ -1,16 +1,14 @@
 namespace RusAuth.Authorization.Example.Tests;
 
+using Contracts;
+using Controllers;
+using Infrastructure;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using global::RusAuth.Authorization.Contracts.Rest;
-using RusAuth.Authorization.Example.Controllers;
-using RusAuth.Authorization.Example.Infrastructure;
-using RusAuth.Authorization.Example.Services;
+using Services;
 
 public sealed class RusAuthCallbackControllerTests
 {
@@ -54,10 +52,10 @@ public sealed class RusAuthCallbackControllerTests
         store.Start(new()
         {
             TransactionId = "tx-001",
-            AtcPhoneNumber = new RusAuthPhoneNumber { CountryCode = 7, Number = 88005550001 }
-        }, new RusAuthCallToConfirmRequest
+            AtcPhoneNumber = "+788005550001"
+        }, new()
         {
-            PhoneNumber = new RusAuthPhoneNumber { CountryCode = 7, Number = 9991112233 },
+            PhoneNumber = "+79991112233",
             ExpirationMinute = 10,
             WebHook = "https://client.example.com/api/rusauth/callback/confirmation",
             WebHookBearerToken = "callback-token"
@@ -77,18 +75,18 @@ public sealed class RusAuthCallbackControllerTests
         var result = await controller.Confirmation(new()
         {
             TransactionId = "tx-001",
-            ClientPhoneNumber = new RusAuthPhoneNumber { CountryCode = 7, Number = 9991112233 }
+            ClientPhoneNumber = "+79991112233"
         });
 
         Assert.IsType<OkResult>(result);
 
         var flow = store.Get("tx-001");
         Assert.NotNull(flow);
-        Assert.Equal(RusAuthConfirmationStatus.Success, flow.Status);
+        Assert.Equal(CallConfirmationStatus.Success, flow.Status);
 
         var payload = Assert.IsType<ExampleConfirmationUpdate>(Assert.Single(notifier.PublishedUpdates));
         Assert.Equal("tx-001", payload.TransactionId);
-        Assert.Equal(RusAuthConfirmationStatus.Success, payload.Status);
+        Assert.Equal(CallConfirmationStatus.Success, payload.Status);
     }
 
     private static CallbackBearerAuthorizationFilter CreateAuthorizationFilter(string callbackBearerToken) =>
@@ -103,17 +101,18 @@ public sealed class RusAuthCallbackControllerTests
         if (string.IsNullOrWhiteSpace(authorizationHeader) is false)
             httpContext.Request.Headers.Authorization = authorizationHeader;
 
-        var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
-        return new AuthorizationFilterContext(actionContext, []);
+        var actionContext = new ActionContext(httpContext, new(), new());
+        return new(actionContext, []);
     }
 
     private sealed class RecordingConfirmationNotifier : IExampleConfirmationNotifier
     {
         public List<ExampleConfirmationUpdate> PublishedUpdates { get; } = [];
+
         public event Func<ExampleConfirmationUpdate, Task>? ConfirmationUpdated
         {
-            add { }
-            remove { }
+            add {}
+            remove {}
         }
 
         public Task PublishAsync(ExampleConfirmationUpdate update, CancellationToken cancellationToken = default)

@@ -1,10 +1,10 @@
 namespace RusAuth.Authorization.Example.Tests;
 
 using Bunit;
+using Components.Pages;
+using Contracts.Rest;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using global::RusAuth.Authorization.Contracts.Rest;
-using RusAuth.Authorization.Example.Components.Pages;
 
 public sealed class ErrorPageTests : TestContext
 {

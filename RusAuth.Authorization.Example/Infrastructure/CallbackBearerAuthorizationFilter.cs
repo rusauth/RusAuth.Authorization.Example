@@ -15,8 +15,8 @@ public sealed class CallbackBearerAuthorizationFilter(IOptions<ExampleCallbackOp
     public void OnAuthorization(AuthorizationFilterContext context)
     {
         var authorizationHeader = context.HttpContext.Request.Headers.Authorization.ToString();
-        if (TryGetBearerToken(authorizationHeader, out var providedToken) is false ||
-            FixedTimeEquals(providedToken, _callbackOptions.CallbackBearerToken) is false)
+        if (!TryGetBearerToken(authorizationHeader, out var providedToken) ||
+            !FixedTimeEquals(providedToken, _callbackOptions.CallbackBearerToken))
         {
             context.Result = new UnauthorizedResult();
         }

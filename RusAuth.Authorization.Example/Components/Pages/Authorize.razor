@@ -21,16 +21,9 @@
             <DataAnnotationsValidator/>
             <ValidationSummary/>
 
-            <div class="field-grid">
-                <div class="field-group">
-                    <label for="countryCode">Код страны</label>
-                    <InputNumber id="countryCode" class="form-control" @bind-Value="Model.CountryCode"/>
-                </div>
-
-                <div class="field-group">
-                    <label for="number">Номер телефона</label>
-                    <InputText id="number" class="form-control" @bind-Value="Model.Number"/>
-                </div>
+            <div class="field-group">
+                <label for="phoneNumber">Номер телефона</label>
+                <InputText id="phoneNumber" class="form-control" @bind-Value="Model.PhoneNumber"/>
             </div>
 
             <div class="field-grid">

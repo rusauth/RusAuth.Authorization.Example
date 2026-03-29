@@ -1,5 +1,6 @@
 namespace RusAuth.Authorization.Example.Services;
 
+using Contracts;
 using Contracts.Rest;
 using Infrastructure;
 using Microsoft.Extensions.Options;
@@ -13,7 +14,7 @@ public sealed class ExampleAuthFacade(
 {
     private readonly ExampleCallbackOptions _callbackOptions = callbackOptions.Value;
 
-    public async Task<ExampleConfirmationFlow> StartConfirmationAsync(RusAuthPhoneNumber phoneNumber,
+    public async Task<ExampleConfirmationFlow> StartConfirmationAsync(string phoneNumber,
                                                                       string callbackUrl,
                                                                       int expirationMinute,
                                                                       CancellationToken cancellationToken = default)
@@ -40,7 +41,7 @@ public sealed class ExampleAuthFacade(
         return flow;
     }
 
-    public async Task<ExampleConfirmationFlow> CheckCurrentConfirmationAsync(RusAuthPhoneNumber phoneNumber,
+    public async Task<ExampleConfirmationFlow> CheckCurrentConfirmationAsync(string phoneNumber,
                                                                              CancellationToken cancellationToken = default)
     {
         var transactionId = session.CurrentTransactionId ??
@@ -50,26 +51,26 @@ public sealed class ExampleAuthFacade(
                               transactionId,
                               phoneNumber.ToDisplayString());
 
-        var status = await rusAuthClient.CheckConfirmationAsync(new()
+        var response = await rusAuthClient.CheckConfirmationAsync(new()
         {
             PhoneNumber = phoneNumber,
             TransactionId = transactionId
         }, cancellationToken);
 
-        var flow = store.MarkManualStatus(transactionId, status) ??
+        var flow = store.MarkManualStatus(transactionId, response.Status) ??
                    throw new InvalidOperationException("Транзакция не найдена в локальном журнале примера.");
 
-        session.SetInfo(status switch
+        session.SetInfo(response.Status switch
                         {
-                            RusAuthConfirmationStatus.Success => "РосАвт подтвердил звонок. В реальном проекте здесь вы применяете свои правила входа.",
-                            RusAuthConfirmationStatus.Failed  => "РосАвт сообщил, что подтверждение не найдено.",
-                            RusAuthConfirmationStatus.Expired => "РосАвт сообщил, что срок подтверждения истёк.",
-                            _                                 => "РосАвт всё ещё ожидает подтверждение."
+                            CallConfirmationStatus.Success => "РосАвт подтвердил звонок. В реальном проекте здесь вы применяете свои правила входа.",
+                            CallConfirmationStatus.Failed  => "РосАвт сообщил, что подтверждение не найдено.",
+                            CallConfirmationStatus.Expired => "РосАвт сообщил, что срок подтверждения истёк.",
+                            _                              => "РосАвт всё ещё ожидает подтверждение."
                         });
 
         logger.LogInformation("RusAuth confirmation status check completed. TransactionId={TransactionId} Status={Status}",
                               transactionId,
-                              status);
+                              response.Status);
 
         return flow;
     }

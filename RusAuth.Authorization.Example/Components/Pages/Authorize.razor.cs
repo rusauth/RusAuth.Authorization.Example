@@ -1,7 +1,7 @@
 namespace RusAuth.Authorization.Example.Components.Pages;
 
 using System.ComponentModel.DataAnnotations;
-using Contracts.Rest;
+using Contracts;
 using Infrastructure;
 using Microsoft.AspNetCore.Components;
 using Services;
@@ -39,8 +39,8 @@ public partial class Authorize : IDisposable
 
     protected async Task SubmitAsync() =>
         await ExecuteAsync(async () => {
-            Logger.LogInformation("Submitting confirmation request. CountryCode={CountryCode} ExpirationMinute={ExpirationMinute}",
-                                  Model.CountryCode,
+            Logger.LogInformation("Submitting confirmation request. PhoneNumber={PhoneNumber} ExpirationMinute={ExpirationMinute}",
+                                  Model.PhoneNumber.ToDisplayString(),
                                   Model.ExpirationMinute);
             await Facade.StartConfirmationAsync(BuildPhoneNumber(),
                                                 GetCallbackUrl(),
@@ -49,8 +49,8 @@ public partial class Authorize : IDisposable
 
     protected async Task CheckStatusAsync() =>
         await ExecuteAsync(async () => {
-            Logger.LogInformation("Submitting manual confirmation status check. CountryCode={CountryCode}",
-                                  Model.CountryCode);
+            Logger.LogInformation("Submitting manual confirmation status check. PhoneNumber={PhoneNumber}",
+                                  Model.PhoneNumber.ToDisplayString());
             await Facade.CheckCurrentConfirmationAsync(BuildPhoneNumber());
         });
 
@@ -62,16 +62,16 @@ public partial class Authorize : IDisposable
         return Task.CompletedTask;
     }
 
-    protected string GetStatusCssClass(RusAuthConfirmationStatus status) =>
+    protected string GetStatusCssClass(CallConfirmationStatus status) =>
         status switch
         {
-            RusAuthConfirmationStatus.Success => "status-pill status-pill-success",
-            RusAuthConfirmationStatus.Failed  => "status-pill status-pill-failed",
-            RusAuthConfirmationStatus.Expired => "status-pill status-pill-expired",
-            _                                 => "status-pill status-pill-pending"
+            CallConfirmationStatus.Success => "status-pill status-pill-success",
+            CallConfirmationStatus.Failed  => "status-pill status-pill-failed",
+            CallConfirmationStatus.Expired => "status-pill status-pill-expired",
+            _                              => "status-pill status-pill-pending"
         };
 
-    protected string GetStatusText(RusAuthConfirmationStatus status) =>
+    protected string GetStatusText(CallConfirmationStatus status) =>
         status.ToDisplayString();
 
     protected static string FormatDate(DateTime? value) =>
@@ -79,13 +79,7 @@ public partial class Authorize : IDisposable
 
     protected string GetCallbackUrl() => Facade.BuildCallbackUrl(new(NavigationManager.BaseUri));
 
-    protected string GetCallbackBearerTokenPreview() => Facade.GetCallbackBearerTokenPreview().MaskSecret();
-
-    private RusAuthPhoneNumber BuildPhoneNumber() => new()
-    {
-        CountryCode = Model.CountryCode,
-        Number = ulong.Parse(Model.Number)
-    };
+    private string BuildPhoneNumber() => Model.PhoneNumber;
 
     private async Task OnConfirmationUpdatedAsync(ExampleConfirmationUpdate update)
     {
@@ -127,12 +121,9 @@ public partial class Authorize : IDisposable
 
     protected sealed class AuthorizeFormModel
     {
-        [Range(1, 999)]
-        public int CountryCode { get; set; } = 7;
-
         [Required]
         [RegularExpression(@"^\d{5,15}$", ErrorMessage = "Введите только цифры без пробелов и разделителей.")]
-        public string Number { get; set; } = string.Empty;
+        public string PhoneNumber { get; set; } = string.Empty;
 
         [Range(1, 60)]
         public int ExpirationMinute { get; set; } = 10;

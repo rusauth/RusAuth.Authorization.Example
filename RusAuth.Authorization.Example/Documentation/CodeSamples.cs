@@ -18,11 +18,7 @@ public static class CodeSamples
     public static string CallToConfirmFlow => """
                                               var response = await rusAuthClient.CallToConfirmAsync(new RusAuthCallToConfirmRequest
                                               {
-                                                  PhoneNumber = new RusAuthPhoneNumber
-                                                  {
-                                                      CountryCode = 7,
-                                                      Number = 9991234567
-                                                  },
+                                                  PhoneNumber = "+79991234567",
                                                   ExpirationMinute = 10,
                                                   WebHook = "https://client.example.com/api/rusauth/callback/confirmation",
                                                   WebHookBearerToken = "client-callback-bearer-token"
@@ -32,11 +28,7 @@ public static class CodeSamples
     public static string CheckConfirmationFlow => """
                                                   var status = await rusAuthClient.CheckConfirmationAsync(new RusAuthCheckConfirmationRequest
                                                   {
-                                                      PhoneNumber = new RusAuthPhoneNumber
-                                                      {
-                                                          CountryCode = 7,
-                                                          Number = 9991234567
-                                                      },
+                                                      PhoneNumber = "+79991234567",
                                                       TransactionId = response.TransactionId
                                                   }, cancellationToken);
                                                   """;
@@ -47,10 +39,7 @@ public static class CodeSamples
 
                                             {
                                               "transactionId": "f3d2d9d0d8cf4d8e8fbb0e1090f7d245",
-                                              "clientPhoneNumber": {
-                                                "countryCode": 7,
-                                                "number": 9991234567
-                                              }
+                                              "clientPhoneNumber": "+79991234567"
                                             }
                                             """;
 

@@ -28,7 +28,7 @@ public sealed class RusAuthCallbackController(
 
         logger.LogInformation("Received RusAuth callback for transaction {TransactionId}. Publishing update to interactive pages.",
                               request.TransactionId);
-        await notifier.PublishAsync(new ExampleConfirmationUpdate
+        await notifier.PublishAsync(new()
         {
             TransactionId = flow.TransactionId,
             Status = flow.Status,

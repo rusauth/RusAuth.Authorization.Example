@@ -1,21 +1,21 @@
 namespace RusAuth.Authorization.Example.Services;
 
 using System.Collections.Concurrent;
+using Contracts;
 using Contracts.Rest;
 
 public sealed class ExampleConfirmationStore
 {
     private readonly ConcurrentDictionary<string, ExampleConfirmationFlow> _flows = new(StringComparer.Ordinal);
 
-    public ExampleConfirmationFlow Start(RusAuthCallToConfirmResponse response,
-                                         RusAuthCallToConfirmRequest request)
+    public ExampleConfirmationFlow Start(RusAuthCallToConfirmResponse response, RusAuthCallToConfirmRequest request)
     {
         var flow = new ExampleConfirmationFlow
         {
             TransactionId = response.TransactionId,
             ClientPhoneNumber = request.PhoneNumber,
             ConfirmationPhoneNumber = response.AtcPhoneNumber,
-            Status = RusAuthConfirmationStatus.Unhandled,
+            Status = CallConfirmationStatus.Unhandled,
             WebHook = request.WebHook,
             CreatedOn = DateTime.UtcNow
         };
@@ -25,7 +25,7 @@ public sealed class ExampleConfirmationStore
     }
 
     public ExampleConfirmationFlow? Get(string transactionId) =>
-        _flows.TryGetValue(transactionId, out var flow) ? flow : null;
+        _flows.GetValueOrDefault(transactionId);
 
     public IReadOnlyCollection<ExampleConfirmationFlow> GetAll() =>
         _flows.Values.OrderByDescending(static x => x.CreatedOn).ToArray();
@@ -37,7 +37,7 @@ public sealed class ExampleConfirmationStore
 
         var updated = existing with
         {
-            Status = RusAuthConfirmationStatus.Success,
+            Status = CallConfirmationStatus.Success,
             CompletedOn = DateTime.UtcNow,
             CallbackReceivedOn = DateTime.UtcNow
         };
@@ -46,12 +46,12 @@ public sealed class ExampleConfirmationStore
         return updated;
     }
 
-    public ExampleConfirmationFlow? MarkManualStatus(string transactionId, RusAuthConfirmationStatus status)
+    public ExampleConfirmationFlow? MarkManualStatus(string transactionId, CallConfirmationStatus status)
     {
         if (!_flows.TryGetValue(transactionId, out var existing))
             return null;
 
-        var completedOn = status == RusAuthConfirmationStatus.Unhandled ? existing.CompletedOn : DateTime.UtcNow;
+        var completedOn = status == CallConfirmationStatus.Unhandled ? existing.CompletedOn : DateTime.UtcNow;
         var updated = existing with
         {
             Status = status,

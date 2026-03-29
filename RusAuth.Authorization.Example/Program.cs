@@ -1,10 +1,8 @@
 namespace RusAuth.Authorization.Example;
 
-using System.IO;
 using Components;
 using Infrastructure;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
@@ -14,20 +12,20 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        builder.Services.Configure<ForwardedHeadersOptions>(options =>
-        {
+        builder.Services.Configure<ForwardedHeadersOptions>(options => {
             options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
             options.KnownIPNetworks.Clear();
             options.KnownProxies.Clear();
         });
 
-        var dataProtectionBuilder = builder.Services.AddDataProtection()
-                                         .SetApplicationName("RusAuth.Authorization.Example");
+        var dataProtectionBuilder = builder.Services.AddDataProtection().SetApplicationName("RusAuth.Authorization.Example");
+
         var dataProtectionKeyRingPath = builder.Configuration["DataProtection:KeyRingPath"];
+
         if (!string.IsNullOrWhiteSpace(dataProtectionKeyRingPath))
         {
             Directory.CreateDirectory(dataProtectionKeyRingPath);
-            dataProtectionBuilder.PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeyRingPath));
+            dataProtectionBuilder.PersistKeysToFileSystem(new(dataProtectionKeyRingPath));
         }
 
         builder.Services.AddRazorComponents()
@@ -35,6 +33,7 @@ public class Program
         builder.Services.AddControllers();
         builder.Services.AddHealthChecks()
                .AddCheck("self", static () => HealthCheckResult.Healthy(), ["liveness", "readiness"]);
+
         builder.Services.AddRusAuthExample(builder.Configuration);
 
         var app = builder.Build();
@@ -50,14 +49,17 @@ public class Program
         app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
         app.MapStaticAssets();
         app.UseAntiforgery();
-        app.MapHealthChecks("/health/live", new HealthCheckOptions
+
+        app.MapHealthChecks("/health/live", new()
         {
             Predicate = static check => check.Tags.Contains("liveness")
         });
-        app.MapHealthChecks("/health/ready", new HealthCheckOptions
+
+        app.MapHealthChecks("/health/ready", new()
         {
             Predicate = static check => check.Tags.Contains("readiness")
         });
+
         app.MapControllers();
         app.MapRazorComponents<App>()
            .AddInteractiveServerRenderMode();

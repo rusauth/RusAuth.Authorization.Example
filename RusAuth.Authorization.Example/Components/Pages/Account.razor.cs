@@ -1,6 +1,6 @@
 namespace RusAuth.Authorization.Example.Components.Pages;
 
-using Contracts.Rest;
+using Contracts;
 using Infrastructure;
 using Microsoft.AspNetCore.Components;
 using Services;
@@ -35,16 +35,16 @@ public partial class Account : IDisposable
         return Task.CompletedTask;
     }
 
-    protected string GetStatusCssClass(RusAuthConfirmationStatus? status) =>
+    protected string GetStatusCssClass(CallConfirmationStatus? status) =>
         status switch
         {
-            RusAuthConfirmationStatus.Success => "status-pill status-pill-success",
-            RusAuthConfirmationStatus.Failed  => "status-pill status-pill-failed",
-            RusAuthConfirmationStatus.Expired => "status-pill status-pill-expired",
-            _                                 => "status-pill status-pill-pending"
+            CallConfirmationStatus.Success => "status-pill status-pill-success",
+            CallConfirmationStatus.Failed  => "status-pill status-pill-failed",
+            CallConfirmationStatus.Expired => "status-pill status-pill-expired",
+            _                              => "status-pill status-pill-pending"
         };
 
-    protected string GetStatusText(RusAuthConfirmationStatus? status) =>
+    protected string GetStatusText(CallConfirmationStatus? status) =>
         status?.ToDisplayString() ?? "ожидается подтверждение";
 
     protected static string FormatDate(DateTime? value) =>

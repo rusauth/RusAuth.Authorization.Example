@@ -1,20 +1,20 @@
 namespace RusAuth.Authorization.Example.Infrastructure;
 
-using Contracts.Rest;
+using Contracts;
 
 public static class StringExtensions
 {
-    public static string ToDisplayString(this RusAuthPhoneNumber? phoneNumber) =>
-        phoneNumber is null ? "не задан" : phoneNumber.ToString();
+    public static string ToDisplayString(this string? phoneNumber) =>
+        phoneNumber ?? "не задан";
 
-    public static string ToDisplayString(this RusAuthConfirmationStatus status) =>
+    public static string ToDisplayString(this CallConfirmationStatus status) =>
         status switch
         {
-            RusAuthConfirmationStatus.Unhandled => "ожидается подтверждение",
-            RusAuthConfirmationStatus.Success   => "подтверждено",
-            RusAuthConfirmationStatus.Failed    => "не подтверждено",
-            RusAuthConfirmationStatus.Expired   => "срок истёк",
-            _                                   => status.ToString()
+            CallConfirmationStatus.Unhandled => "ожидается подтверждение",
+            CallConfirmationStatus.Success   => "подтверждено",
+            CallConfirmationStatus.Failed    => "не подтверждено",
+            CallConfirmationStatus.Expired   => "срок истёк",
+            _                                => status.ToString()
         };
 
     public static string MaskSecret(this string? value)
