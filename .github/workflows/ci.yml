@@ -44,7 +44,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Setup Helm
-        uses: azure/setup-helm@v4
+        uses: azure/setup-helm@v5
 
       - name: Restore solution
         run: dotnet restore RusAuth.Authorization.Example.slnx --nologo
@@ -96,7 +96,7 @@ jobs:
           path: ${{ env.PUBLISH_OUTPUT }}
 
       - name: Setup Helm
-        uses: azure/setup-helm@v4
+        uses: azure/setup-helm@v5
 
       - name: Setup kubectl
         uses: azure/setup-kubectl@v4
