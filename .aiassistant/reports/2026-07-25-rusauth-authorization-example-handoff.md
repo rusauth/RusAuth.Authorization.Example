@@ -37,3 +37,12 @@ Reviewed implementation commit:
 - `555a2b478237c02f6436cdc8a474e288508451fa`
 
 The publication audit compared all ten changed local paths with their GitHub blob hashes and found zero mismatches. Local settings, `.idea`, `bin`, `obj`, and generated artifacts were excluded.
+
+## CI and deployment boundary
+
+Both published-source CI runs passed the complete build/test job. Their deploy
+jobs then timed out connecting to the private Kubernetes API
+`155.212.186.132:6443`; no application, package, or chart validation failed.
+The workflow now runs deployment only through explicit `workflow_dispatch`.
+Push and pull-request CI retain restore, build, 10/10 tests, application
+publish, Blazor asset verification, artifact upload, and Helm lint/render.

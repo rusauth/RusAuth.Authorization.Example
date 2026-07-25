@@ -24,6 +24,7 @@ Keep `RusAuth.Authorization.Example.slnx` aligned with the released public RusAu
 4. Release handoff
    - Publish only the intended source changes; preserve and exclude `.idea` and generated artifacts.
    - Record the exact RusAuth package tags/commits, example commit, tests, and startup evidence.
+   - Keep private-cluster deployment as an explicit `workflow_dispatch` action; push and pull-request CI must not fail because the private Kubernetes API is unreachable from a hosted runner.
 
 ## Acceptance
 
@@ -42,3 +43,4 @@ Keep `RusAuth.Authorization.Example.slnx` aligned with the released public RusAu
 - `RusAuth.Authorization.Contracts` `1.0.7` is provenance-bound to `724434534fdb306dd5e6be7b6b2e53844bc21bee`.
 - `RusAuth.Authorization` `1.0.7` is provenance-bound to `96f506b6bc9bb5e99d9948dcd9d0053afbd0b92c` and pins Contracts `[1.0.7]`.
 - Reviewed example implementation commit: `555a2b478237c02f6436cdc8a474e288508451fa`.
+- Push CI performs build, tests, publish-artifact validation, and Helm checks. Deployment is intentionally operator-triggered because the hosted runner timed out connecting to the private Kubernetes API.

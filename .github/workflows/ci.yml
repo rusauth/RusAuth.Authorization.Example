@@ -81,7 +81,7 @@ jobs:
         run: helm template ${{ env.HELM_RELEASE }} ./${{ env.CHART_PATH }} > (Join-Path $env:RUNNER_TEMP 'rusauth-authorization-example-chart.yaml')
 
   publish-and-deploy:
-    if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
+    if: github.ref == 'refs/heads/master' && github.event_name == 'workflow_dispatch'
     needs: build-test
     runs-on: ubuntu-24.04
 
