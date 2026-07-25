@@ -4,7 +4,8 @@ _ReSharper.*
 bin
 obj
 packages
-.idea/*
+.artifacts/
+**/.idea/
 
 .vs/
 [Bb]in/

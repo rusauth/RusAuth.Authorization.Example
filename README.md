@@ -36,8 +36,8 @@ Important:
 
 The example consumes public NuGet packages:
 
-- `RusAuth.Authorization` `1.0.2`
-- `RusAuth.Authorization.Contracts` `1.0.2`
+- `RusAuth.Authorization` `1.0.7`
+- `RusAuth.Authorization.Contracts` `1.0.7`
 
 Standard `dotnet restore` uses NuGet.org. No private feed is required for the published package versions.
 
@@ -46,9 +46,9 @@ Standard `dotnet restore` uses NuGet.org. No private feed is required for the pu
 Restore, build, and test:
 
 ```powershell
-dotnet restore D:\Developer\SERVER\RusAuth\Example\RusAuth.Authorization.Example.slnx --nologo
-dotnet build D:\Developer\SERVER\RusAuth\Example\RusAuth.Authorization.Example.slnx --nologo
-dotnet test D:\Developer\SERVER\RusAuth\Example\RusAuth.Authorization.Example.slnx --nologo
+dotnet restore D:/Priority/RusAuth/RusAuth-Example/RusAuth.Authorization.Example.slnx --nologo
+dotnet build D:/Priority/RusAuth/RusAuth-Example/RusAuth.Authorization.Example.slnx --nologo
+dotnet test D:/Priority/RusAuth/RusAuth-Example/RusAuth.Authorization.Example.slnx --nologo
 ```
 
 Local secret values should stay in `appsettings.Development.Local.json`, which is ignored by git.

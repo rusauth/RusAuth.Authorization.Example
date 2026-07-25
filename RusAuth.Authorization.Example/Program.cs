@@ -10,12 +10,18 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        var builder = WebApplication.CreateBuilder(args);
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+        {
+            Args = args,
+            ContentRootPath = AppContext.BaseDirectory
+        });
+        builder.Configuration.AddJsonFile(
+            $"appsettings.{builder.Environment.EnvironmentName}.Local.json",
+            optional: true,
+            reloadOnChange: true);
 
         builder.Services.Configure<ForwardedHeadersOptions>(options => {
             options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-            options.KnownIPNetworks.Clear();
-            options.KnownProxies.Clear();
         });
 
         var dataProtectionBuilder = builder.Services.AddDataProtection().SetApplicationName("RusAuth.Authorization.Example");

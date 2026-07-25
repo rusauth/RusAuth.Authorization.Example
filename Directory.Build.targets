@@ -1,0 +1,6 @@
+<Project>
+    <ItemGroup>
+        <Content Update="appsettings.Development.json;appsettings.Development.Local.json"
+                 CopyToPublishDirectory="Never" />
+    </ItemGroup>
+</Project>
