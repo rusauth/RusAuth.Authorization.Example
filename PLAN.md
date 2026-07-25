@@ -41,3 +41,4 @@ Keep `RusAuth.Authorization.Example.slnx` aligned with the released public RusAu
 - Publish output contained `appsettings.json` and the executable, and excluded `appsettings.Development.Local.json`.
 - `RusAuth.Authorization.Contracts` `1.0.7` is provenance-bound to `724434534fdb306dd5e6be7b6b2e53844bc21bee`.
 - `RusAuth.Authorization` `1.0.7` is provenance-bound to `96f506b6bc9bb5e99d9948dcd9d0053afbd0b92c` and pins Contracts `[1.0.7]`.
+- Reviewed example implementation commit: `555a2b478237c02f6436cdc8a474e288508451fa`.
