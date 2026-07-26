@@ -2,6 +2,8 @@
 
 Date: 2026-07-25
 
+Revalidated: 2026-07-26
+
 ## Outcome
 
 `RusAuth.Authorization.Example.slnx` consumes only the released public packages:
@@ -25,6 +27,8 @@ The application loads the optional ignored `appsettings.{Environment}.Local.json
 - NuGet.org-only cold restore: passed. NuGet retried transient 60-second download stalls and completed.
 - Release build: passed with 0 warnings and 0 errors.
 - Complete tests: 10 passed, 0 failed, 0 skipped.
+- NuGet vulnerability audit: no vulnerable direct or transitive packages
+  after overriding the test dependency with AngleSharp `1.5.2`.
 - Direct executable startup in `Development`: passed.
 - `GET /health/ready`: HTTP 200.
 - Local overlay present for development startup: yes.
@@ -40,9 +44,25 @@ The publication audit compared all ten changed local paths with their GitHub blo
 
 ## CI and deployment boundary
 
-Both published-source CI runs passed the complete build/test job. Their deploy
-jobs then timed out connecting to the private Kubernetes API
-`155.212.186.132:6443`; no application, package, or chart validation failed.
-The workflow now runs deployment only through explicit `workflow_dispatch`.
-Push and pull-request CI retain restore, build, 10/10 tests, application
-publish, Blazor asset verification, artifact upload, and Helm lint/render.
+The public workflow retains restore, build, 10/10 tests, application publish,
+Blazor asset verification, artifact upload, and GHCR image publication.
+Environment topology, cluster credentials, secret-object names, and deployment
+commands were removed from the public repository. Private environment
+automation owns deployment and consumes the commit-tagged image.
+
+## Origin reconciliation review
+
+- `master` was fast-forwarded from `54fe3d6` to `origin/master`
+  `d8dd40a577df2dc5afbf35bd39a1a46cee0b1687`.
+- Incoming commits: `555a2b4`, `708b850`, and `d8dd40a`.
+- Existing local work was preserved and reapplied; the CI workflow and
+  `.gitignore` overlaps were resolved semantically.
+- The solution has no direct or transitive `Library.*` package dependency, so
+  adding a Library SDK package solely to pin `1.0.23` would create an unused
+  dependency.
+- NuGet.org restore and the vulnerability audit passed. Release build completed
+  with zero warnings and errors, all 10 tests passed, and the built Development
+  executable returned HTTP 200 from `/health/ready`.
+- Publish validation found the executable, `appsettings.json`, and
+  `wwwroot/_framework/blazor.web.js`; no Development or Local settings were
+  published.

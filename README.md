@@ -24,13 +24,11 @@ Important:
 
 - `RusAuth.Authorization.Example`
   - Blazor Web App Server
-  - public demo application deployed to `https://example-demo.rusauth.ru`
+  - public demo application available at `https://example-demo.rusauth.ru`
 - `RusAuth.Authorization.Example.Tests`
   - unit tests for the example application logic
-- `pipelines/charts/rusauth-authorization-example`
-  - Helm chart for the K3s deployment behind Gateway API
 - `.github/workflows/ci.yml`
-  - PR build/test workflow and automatic `master` deployment
+  - PR build/test workflow and container-image publication from `master`
 
 ## Package dependencies
 
@@ -72,26 +70,24 @@ Tracked `appsettings.json` keeps only the public defaults:
 
 Production secrets are not committed because this repository is public.
 
-Runtime configuration is provided through Kubernetes secrets:
+Provide runtime secrets through the deployment system that owns the environment:
 
 - `RusAuth__Token`
 - `Example__CallbackBearerToken`
 
-The callback bearer token is created in Kubernetes on first deploy and reused on later deploys unless a manual workflow run explicitly rotates it.
-
 ## Data Protection
 
-The example uses ASP.NET Core antiforgery for the interactive server UI, so the Data Protection key ring must survive pod restarts.
+The example uses ASP.NET Core antiforgery for the interactive server UI, so a
+production host should persist the Data Protection key ring across application
+restarts.
 
-The Helm chart now mounts a persistent volume and stores the key ring at:
-
-- `/var/lib/rusauth-authorization-example/data-protection`
-
-If that storage is removed or the key ring changes unexpectedly, browsers may send stale antiforgery cookies and the app can log:
+If the key ring changes unexpectedly, browsers may send stale antiforgery
+cookies and the app can log:
 
 - `The antiforgery token could not be decrypted.`
 
-In that case the deployment is healthy, but existing browser cookies are no longer valid. A browser refresh or cookie clear will issue a new token.
+In that case the application can be healthy while existing browser cookies are
+no longer valid. A browser refresh or cookie clear will issue a new token.
 
 ## CI/CD
 
@@ -103,42 +99,28 @@ GitHub Actions workflow:
   - test
   - publish the app with the pinned Windows SDK
   - verify `wwwroot/_framework/blazor.web.js` exists in the published output
-  - Helm lint and render
 - push to `master`
   - repeat the same validation
   - package the published output into the runtime container image and push to GHCR
-  - deploy automatically to K3s namespace `rusauth-example-demo`
+- manual workflow runs on `master`
+  - repeat validation and publish the image without changing an environment
 
 The runtime image is intentionally built from the already-published app output. This avoids a Linux SDK publish regression that was dropping the Blazor framework assets from the container image.
 
-Required GitHub Actions secrets:
+## Deployment boundary
 
-- `KUBECONFIG_B64`
-- `GHCR_PULL_USERNAME`
-- `GHCR_PULL_TOKEN`
-- `RUSAUTH_EXAMPLE_API_TOKEN`
-
-## Deployment
-
-The production deployment uses:
-
-- image: `ghcr.io/rusauth/rusauth-authorization-example`
-- hostname: `example-demo.rusauth.ru`
-- ingress model: Gateway API through the shared `edge` gateway in `gateway-system`
-- namespace: `rusauth-example-demo`
-
-The chart expects a runtime secret named `rusauth-authorization-example-secrets`.
-HTTP to HTTPS redirection is handled at the Gateway. The app itself serves plain HTTP on port `8080` inside the cluster.
-
-## Operational note
-
-The application runs behind Traefik with TLS termination on the gateway. The app itself trusts forwarded headers and exposes:
+This public repository deliberately contains no environment topology,
+kubeconfig handling, cluster secret names, or deployment commands. Deployment
+is owned by private environment automation. The application exposes:
 
 - `/health/live`
 - `/health/ready`
 
-for Kubernetes liveness and readiness probes.
+for host liveness and readiness checks.
 
 ## Runtime behavior
 
-The demo pages refresh after callbacks through an in-process confirmation notifier. This keeps the example reliable in the current single-replica deployment and avoids making the server reconnect to its own public URL during prerender.
+The demo pages refresh after callbacks through an in-process confirmation
+notifier. This is appropriate for the reference application's single-process
+runtime model and avoids making the server reconnect to its own public URL
+during prerender.
