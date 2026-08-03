@@ -1,8 +1,10 @@
 **/bin/
 **/obj/
+**/appsettings.*.Local.json
+.aiassistant/
+.artifacts/
 .git/
 .github/
 .idea/
 .vs/
 README.md
-

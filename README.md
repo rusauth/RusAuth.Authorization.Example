@@ -75,6 +75,18 @@ Provide runtime secrets through the deployment system that owns the environment:
 - `RusAuth__Token`
 - `Example__CallbackBearerToken`
 
+The production deployment must also provide a persistent key-ring directory
+and a dedicated PEM certificate/private-key pair through the topology-neutral
+configuration keys below:
+
+- `DataProtection__KeyRingPath`
+- `DataProtection__CertificatePath`
+- `DataProtection__CertificateKeyPath`
+
+Production startup fails if persistence or encryption is absent. Certificate
+renewal must preserve the private key. Replacing that key requires retaining
+the old decryptor until all persisted key-ring files have rolled.
+
 ## Data Protection
 
 The example uses ASP.NET Core antiforgery for the interactive server UI, so a
@@ -101,11 +113,15 @@ GitHub Actions workflow:
   - verify `wwwroot/_framework/blazor.web.js` exists in the published output
 - push to `master`
   - repeat the same validation
+  - smoke-test the runtime container's management/public health split and absent Swagger surface
   - package the published output into the runtime container image and push to GHCR
 - manual workflow runs on `master`
   - repeat validation and publish the image without changing an environment
 
 The runtime image is intentionally built from the already-published app output. This avoids a Linux SDK publish regression that was dropping the Blazor framework assets from the container image.
+
+Images are published only as immutable `sha-<40-character-commit>` tags. There
+is no `latest` deployment contract.
 
 ## Deployment boundary
 
@@ -117,6 +133,10 @@ is owned by private environment automation. The application exposes:
 - `/health/ready`
 
 for host liveness and readiness checks.
+
+Set `HealthChecks__ManagementPort` in production and expose that port only
+inside the workload. Requests for `/health/*` arriving on the public
+application port then return 404.
 
 ## Runtime behavior
 
